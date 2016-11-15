@@ -1,6 +1,7 @@
 package com.herczogattila.tlog16rs;
 
 import com.herczogattila.tlog16rs.resources.HelloResource;
+import com.herczogattila.tlog16rs.resources.TLOG16RSResource;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -26,6 +27,7 @@ public class TLOG16RSApplication extends Application<TLOG16RSConfiguration> {
                     final Environment environment) {
         // TODO: implement application
         environment.jersey().register(new HelloResource());
+        environment.jersey().register(new TLOG16RSResource());
     }
 
 }

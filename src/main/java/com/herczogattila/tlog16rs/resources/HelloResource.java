@@ -40,10 +40,10 @@ public class HelloResource {
         return "Hello " + name + "!";
     }
     
-    @Path("/hello_json")
+    /*@Path("/hello_json")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Greeting getJSONGreeting() {
         return new Greeting("Hello world!");
-    }
+    }*/
 }
