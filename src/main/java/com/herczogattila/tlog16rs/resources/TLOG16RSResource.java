@@ -16,6 +16,7 @@ import com.herczogattila.tlog16rs.core.WorkDayRB;
 import com.herczogattila.tlog16rs.core.WorkMonth;
 import com.herczogattila.tlog16rs.core.WorkMonthRB;
 import groovy.util.logging.Slf4j;
+import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -38,7 +39,7 @@ public class TLOG16RSResource {
     
     private WorkMonth findWorkMonth(int year, int month) {
         for(WorkMonth wm : timeLogger.getMonths()) {
-            if(wm.getDate().getYear() == year && wm.getDate().getMonthValue()== month)
+            if(wm.getYear() == year && wm.getMonth()== month)
                 return wm;
         }
         
@@ -136,62 +137,19 @@ public class TLOG16RSResource {
         StringBuilder sb = new StringBuilder();
         sb.append("Months:").append("<br>");
         timeLogger.getMonths().stream().forEach((wd) -> {
-            if(wd.getDate().getYear() == year) {
-                sb.append("<a href='workmonths/").append(year).append("/").append(wd.getDate().getMonthValue()).append("'>").append(wd.getDate().getMonth()).append("</a><br>");
+            if(wd.getYear() == year) {
+                sb.append("<a href='workmonths/").append(year).append("/").append(wd.getMonth()).append("'>").append(wd.getMonth()).append("</a><br>");
             }
         });
         
         return sb.toString();
     }
     
-    @Path("/listdays")
-    @GET
-    @Produces(MediaType.TEXT_HTML)
-    public String getListDays() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<!DOCTYPE html>");
-        sb.append("<html>");
-        sb.append("<head>");
-        sb.append("<title>Time Logger Menu</title>");
-        sb.append("</head>");
-        sb.append("<body>");
-        timeLogger.getMonths().stream().forEach((wm) -> {
-            sb.append(wm.getDate()).append("\r\n");
-        });
-        sb.append("<body>");
-        sb.append("</html>");
-        
-        return sb.toString();
-    }
-    
     @Path("/workmonths")
     @GET
-    @Produces(MediaType.TEXT_HTML)
-    public String getWorkmonths() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Workmonths:").append("<br>");
-        timeLogger.getMonths().stream().forEach((wm) -> {
-            sb.append("<a href='workmonths/").append(wm.getDate().getYear()).append("/").append(wm.getDate().getMonthValue()).append("'>").append(wm.getDate()).append("</a><br>");
-            sb.append(wm.getRequiredMinPerMonth()).append("<br>");
-            sb.append(wm.getSumPerMonth()).append("<br>");
-            sb.append(wm.getExtraMinPerMonth()).append("<br>");
-            sb.append("Workdays:").append("<br>");
-            wm.getDays().stream().forEach((wd) -> {
-                sb.append("Actual day: ").append(wd.getActualDay()).append("<br>");
-                sb.append("Extra minute per day: ").append(wd.getExtraMinPerDay()).append("<br>");
-                sb.append("Required minute per day: ").append(wd.getRequiredMinPerDay()).append("<br>");
-                sb.append("Sum per day: ").append(wd.getSumPerDay()).append("<br>");
-                sb.append("Tasks:").append("<br>");
-                wd.getTasks().stream().forEach((t) -> {
-                    sb.append("\t").append(t.toString()).append("<br>");
-                    sb.append("<br>");
-                });
-                sb.append("<br>");
-            });
-            sb.append("<br>");
-        });
-        
-        return sb.toString();
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<WorkMonth> getWorkmonths() {
+        return timeLogger.getMonths();
     }
     
     @Path("/workmonths")
@@ -210,26 +168,9 @@ public class TLOG16RSResource {
     
     @Path("/workmonths/{year}/{month}")
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String getWorkMonth(@PathParam(value = "year") int year, @PathParam(value = "month") int month) {
-        WorkMonth wm = findOrCreateWorkMonth(year, month);
-        
-        StringBuilder sb = new StringBuilder();
-        sb.append("Workdays:").append("\r\n");
-        wm.getDays().stream().forEach((wd) -> {
-            sb.append("Actual day: ").append(wd.getActualDay()).append("\r\n");
-            sb.append("Extra minute per day: ").append(wd.getExtraMinPerDay()).append("\r\n");
-            sb.append("Required minute per day: ").append(wd.getRequiredMinPerDay()).append("\r\n");
-            sb.append("Sum per day: ").append(wd.getSumPerDay()).append("\r\n");
-            sb.append("Tasks:").append("\r\n");
-            wd.getTasks().stream().forEach((t) -> {
-                sb.append("\t").append(t.toString()).append("\r\n");
-                sb.append("\r\n");
-            });
-            sb.append("\r\n");
-        });
-        
-        return sb.toString();
+    @Produces(MediaType.APPLICATION_JSON)
+    public WorkMonth getWorkMonth(@PathParam(value = "year") int year, @PathParam(value = "month") int month) {
+        return findOrCreateWorkMonth(year, month);
     }
     
     @Path("/workmonths/workdays")
@@ -251,17 +192,9 @@ public class TLOG16RSResource {
     
     @Path("/workmonths/{year}/{month}/{day}")
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String getWorkDay(@PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
-        WorkDay wd = findOrCreateWorkDay(year, month, day);
-        
-        StringBuilder sb = new StringBuilder();
-        sb.append("\r\n").append("Tasks:").append("\r\n");
-        wd.getTasks().stream().forEach((t) -> {
-            sb.append(t.toString()).append("\r\n");
-        });
-        
-        return sb.toString();
+    @Produces(MediaType.APPLICATION_JSON)
+    public WorkDay getWorkDay(@PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
+        return findOrCreateWorkDay(year, month, day);
     }
     
     @Path("/workmonths/workdays/tasks/start")
@@ -311,5 +244,11 @@ public class TLOG16RSResource {
             if(t != null)
                 day.getTasks().remove(t);
         } catch(Exception e) { LOG.warn(e.getMessage()); }
+    }
+    
+    @Path("/workmonths/deleteall")
+    @PUT
+    public void deleteAllWorkmonths() {
+        timeLogger.getMonths().clear();
     }
 }

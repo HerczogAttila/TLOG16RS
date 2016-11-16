@@ -29,8 +29,8 @@ public class TimeLogger {
     * @return boolean
     */
     public boolean isNewMonth(WorkMonth month) {
-        return months.stream().noneMatch((d) -> (d.getDate().getMonthValue() == month.getDate().getMonthValue() &&
-                d.getDate().getYear() == month.getDate().getYear()));
+        return months.stream().noneMatch((d) -> (d.getMonth() == month.getMonth() &&
+                d.getYear() == month.getYear()));
     }
 
     /**

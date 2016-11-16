@@ -5,6 +5,7 @@
  */
 package com.herczogattila.tlog16rs.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.herczogattila.tlog16rs.core.exceptions.NotNewDateException;
 import com.herczogattila.tlog16rs.core.exceptions.NotTheSameMonthException;
 import com.herczogattila.tlog16rs.core.exceptions.WeekendNotEnabledException;
@@ -100,9 +101,19 @@ public class WorkMonth {
     public long getRequiredMinPerMonth() {
         return days.stream().mapToLong(s -> s.getRequiredMinPerDay()).sum();
     }
+    
+    @JsonIgnore
+    public int getYear() {
+        return date.getYear();
+    }
+    
+    @JsonIgnore
+    public int getMonth() {
+        return date.getMonthValue();
+    }
 
-    public YearMonth getDate() {
-        return date;
+    public String getDate() {
+        return date.toString();
     }
 
     public List<WorkDay> getDays() {
