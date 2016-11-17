@@ -11,7 +11,7 @@ package com.herczogattila.tlog16rs.core;
  */
 public class ModifyTaskRB {
     private int year, month, day;
-    private String taskId, startTime, endTime, comment, newTaskId, newStartTime, newEndTime, newComment;
+    private String taskId, startTime, newTaskId, newStartTime, newEndTime, newComment;
 
     public int getYear() {
         return year;
@@ -51,22 +51,6 @@ public class ModifyTaskRB {
 
     public void setStartTime(String startTime) {
         this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
     }
 
     public String getNewTaskId() {

@@ -10,12 +10,14 @@ import com.herczogattila.tlog16rs.core.FinishingTaskRB;
 import com.herczogattila.tlog16rs.core.ModifyTaskRB;
 import com.herczogattila.tlog16rs.core.StartTaskRB;
 import com.herczogattila.tlog16rs.core.Task;
+import static com.herczogattila.tlog16rs.core.Task.stringToLocalTime;
 import com.herczogattila.tlog16rs.core.TimeLogger;
 import com.herczogattila.tlog16rs.core.WorkDay;
 import com.herczogattila.tlog16rs.core.WorkDayRB;
 import com.herczogattila.tlog16rs.core.WorkMonth;
 import com.herczogattila.tlog16rs.core.WorkMonthRB;
 import groovy.util.logging.Slf4j;
+import java.time.LocalTime;
 import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -85,10 +87,11 @@ public class TLOG16RSResource {
         return null;
     }
     
-    private Task findTask(int year, int month, int day, String taskId) {
+    private Task findTask(int year, int month, int day, String taskId, String startTime) {
+        LocalTime start = stringToLocalTime(startTime);
         WorkDay wd = findOrCreateWorkDay(year, month, day);
         for(Task t : wd.getTasks()) {
-            if(t.getTaskId().equals(taskId))
+            if(t.getTaskId().equals(taskId) && t.getStartTime().equals(start))
                 return t;
         }
         
@@ -96,9 +99,10 @@ public class TLOG16RSResource {
     }
     
     private Task findOrCreateTask(int year, int month, int day, String taskId, String startTime) {
+        LocalTime start = stringToLocalTime(startTime);
         WorkDay wd = findOrCreateWorkDay(year, month, day);
         for(Task t : wd.getTasks()) {
-            if(t.getTaskId().equals(taskId))
+            if(t.getTaskId().equals(taskId) && t.getStartTime().equals(start))
                 return t;
         }
         
@@ -169,8 +173,8 @@ public class TLOG16RSResource {
     @Path("/workmonths/{year}/{month}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public WorkMonth getWorkMonth(@PathParam(value = "year") int year, @PathParam(value = "month") int month) {
-        return findOrCreateWorkMonth(year, month);
+    public List<WorkDay> getWorkMonth(@PathParam(value = "year") int year, @PathParam(value = "month") int month) {
+        return findOrCreateWorkMonth(year, month).getDays();
     }
     
     @Path("/workmonths/workdays")
@@ -193,8 +197,8 @@ public class TLOG16RSResource {
     @Path("/workmonths/{year}/{month}/{day}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public WorkDay getWorkDay(@PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
-        return findOrCreateWorkDay(year, month, day);
+    public List<Task> getWorkDay(@PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
+        return findOrCreateWorkDay(year, month, day).getTasks();
     }
     
     @Path("/workmonths/workdays/tasks/start")
@@ -240,7 +244,7 @@ public class TLOG16RSResource {
     public void deleteTask(DeleteTaskRB deleteTask) {
         try {
             WorkDay day = findOrCreateWorkDay(deleteTask.getYear(), deleteTask.getMonth(), deleteTask.getDay());
-            Task t = findTask(deleteTask.getYear(), deleteTask.getMonth(), deleteTask.getDay(), deleteTask.getTaskId());
+            Task t = findTask(deleteTask.getYear(), deleteTask.getMonth(), deleteTask.getDay(), deleteTask.getTaskId(), deleteTask.getStartTime());
             if(t != null)
                 day.getTasks().remove(t);
         } catch(Exception e) { LOG.warn(e.getMessage()); }
@@ -252,3 +256,7 @@ public class TLOG16RSResource {
         timeLogger.getMonths().clear();
     }
 }
+
+/*
+
+    21. You should try to delete an existing task, and check if this is working well.*/
