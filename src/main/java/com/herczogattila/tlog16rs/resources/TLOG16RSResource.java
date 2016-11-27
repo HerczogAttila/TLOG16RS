@@ -5,6 +5,7 @@
  */
 package com.herczogattila.tlog16rs.resources;
 
+import com.herczogattila.tlog16rs.db.CreateDatabase;
 import com.herczogattila.tlog16rs.core.DeleteTaskRB;
 import com.herczogattila.tlog16rs.core.FinishingTaskRB;
 import com.herczogattila.tlog16rs.core.ModifyTaskRB;
@@ -16,6 +17,7 @@ import com.herczogattila.tlog16rs.core.WorkDay;
 import com.herczogattila.tlog16rs.core.WorkDayRB;
 import com.herczogattila.tlog16rs.core.WorkMonth;
 import com.herczogattila.tlog16rs.core.WorkMonthRB;
+import com.herczogattila.tlog16rs.db.TestEntity;
 import groovy.util.logging.Slf4j;
 import java.time.LocalTime;
 import java.util.List;
@@ -38,6 +40,7 @@ public class TLOG16RSResource {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(TLOG16RSResource.class);
     
     private final TimeLogger timeLogger = new TimeLogger();
+    private final CreateDatabase database = new CreateDatabase();
     
     private WorkMonth findWorkMonth(int year, int month) {
         for(WorkMonth wm : timeLogger.getMonths()) {
@@ -255,8 +258,18 @@ public class TLOG16RSResource {
     public void deleteAllWorkmonths() {
         timeLogger.getMonths().clear();
     }
+    
+    @Path("/save/test")
+    @POST
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getWorkmonths(String text) {
+        TestEntity test = new TestEntity();
+        test.setText(text);
+        
+        database.getEbeanServer().save(test);
+        
+        return text;
+    }
 }
 
-/*
-
-    21. You should try to delete an existing task, and check if this is working well.*/
