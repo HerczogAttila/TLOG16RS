@@ -5,6 +5,7 @@
  */
 package com.herczogattila.tlog16rs.resources;
 
+import com.herczogattila.tlog16rs.TLOG16RSConfiguration;
 import com.herczogattila.tlog16rs.db.CreateDatabase;
 import com.herczogattila.tlog16rs.core.DeleteTaskRB;
 import com.herczogattila.tlog16rs.core.FinishingTaskRB;
@@ -40,7 +41,11 @@ public class TLOG16RSResource {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(TLOG16RSResource.class);
     
     private final TimeLogger timeLogger = new TimeLogger();
-    private final CreateDatabase database = new CreateDatabase();
+    private final CreateDatabase database;
+    
+    public TLOG16RSResource(TLOG16RSConfiguration config) {
+        database = new CreateDatabase(config);
+    }
     
     private WorkMonth findWorkMonth(int year, int month) {
         for(WorkMonth wm : timeLogger.getMonths()) {

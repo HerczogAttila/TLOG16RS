@@ -9,6 +9,7 @@ import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.EbeanServerFactory;
 import com.avaje.ebean.config.DataSourceConfig;
 import com.avaje.ebean.config.ServerConfig;
+import com.herczogattila.tlog16rs.TLOG16RSConfiguration;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -28,31 +29,42 @@ import org.avaje.agentloader.AgentLoader;
 public class CreateDatabase {
     private final EbeanServer ebeanServer;
     private Liquibase liquibase;
+    private final DataSourceConfig dataSourceConfig;
+    private final ServerConfig serverConfig;
     
-    public CreateDatabase() {
-        DataSourceConfig dataSourceConfig = new DataSourceConfig();
-        dataSourceConfig.setDriver(System.getProperty("Dsys.prop.driver"));
-        dataSourceConfig.setUrl(System.getProperty("Dsys.prop.url"));
-        dataSourceConfig.setUsername(System.getProperty("Dsys.prop.user"));
-        dataSourceConfig.setPassword(System.getProperty("Dsys.prop.password"));
-                
-        ServerConfig serverConfig = new ServerConfig();
-        serverConfig.setName(System.getProperty("Dsys.prop.user"));
+    public CreateDatabase(TLOG16RSConfiguration config) {
+        dataSourceConfig = new DataSourceConfig();
+                        
+        serverConfig = new ServerConfig();
         serverConfig.setDdlGenerate(true);
         serverConfig.setDdlRun(true);
-        serverConfig.setRegister(false);
+        serverConfig.setRegister(true);
+        serverConfig.setDefaultServer(true);
         serverConfig.setDataSourceConfig(dataSourceConfig);
         serverConfig.addClass(TestEntity.class);
         
-        updateSchema();
+        setDataSourceConfig(config);
+        setServerConfig(config);
+        updateSchema(config);
         agentLoader();
         ebeanServer = EbeanServerFactory.create(serverConfig);
     }
     
-    private void updateSchema() {
+    private void setDataSourceConfig(TLOG16RSConfiguration config) {
+        dataSourceConfig.setDriver(config.getDriver());
+        dataSourceConfig.setUrl(config.getUrl());
+        dataSourceConfig.setUsername(config.getName());
+        dataSourceConfig.setPassword(config.getPassword());
+    }
+    
+    private void setServerConfig(TLOG16RSConfiguration config) {
+        serverConfig.setName(config.getServerConfigName());
+    }
+
+    private void updateSchema(TLOG16RSConfiguration config) {
         try {
-            Class.forName(System.getProperty("Dsys.prop.driver"));
-            Connection c = DriverManager.getConnection(System.getProperty("Dsys.prop.url"), System.getProperty("Dsys.prop.user"), System.getProperty("Dsys.prop.password"));
+            Class.forName(config.getDriver());
+            Connection c = DriverManager.getConnection(config.getUrl(), config.getName(), config.getPassword());
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(c));
             liquibase = new Liquibase("src/main/java/com/herczogattila/tlog16rs/resources/migrations.xml", new FileSystemResourceAccessor(), database);
             liquibase.update(new Contexts("create"));

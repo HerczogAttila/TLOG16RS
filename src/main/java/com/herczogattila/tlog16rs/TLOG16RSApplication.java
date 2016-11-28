@@ -34,7 +34,7 @@ public class TLOG16RSApplication extends Application<TLOG16RSConfiguration> {
                     final Environment environment) {
         // TODO: implement application
         environment.jersey().register(new HelloResource());
-        environment.jersey().register(new TLOG16RSResource());
+        environment.jersey().register(new TLOG16RSResource(configuration));
     }
 
 }
