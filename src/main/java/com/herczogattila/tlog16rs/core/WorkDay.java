@@ -5,24 +5,43 @@
  */
 package com.herczogattila.tlog16rs.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.herczogattila.tlog16rs.core.exceptions.FutureWorkException;
 import com.herczogattila.tlog16rs.core.exceptions.NegativeMinutesOfWorkException;
 import com.herczogattila.tlog16rs.core.exceptions.NotMultipleQuarterHourException;
 import com.herczogattila.tlog16rs.core.exceptions.NotSeparatedTimesException;
+import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 /**
  *
  * @author Attila
  */
-public class WorkDay {
+@Entity
+@lombok.Getter
+@lombok.Setter
+public class WorkDay implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @JsonIgnore
+    private int id;
+    
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Task> tasks;
     private long requiredMinPerDay;
     private LocalDate actualDay;
+    
+    private long extraMinPerDay, sumMinPerDay;
     
     /**
      * Default Constructor.
@@ -56,12 +75,15 @@ public class WorkDay {
         if(requiredMinPerDay < 0)
             throw new NegativeMinutesOfWorkException();
 
-        tasks = new ArrayList<>();
+        //tasks = new ArrayList();
         this.requiredMinPerDay = requiredMinPerDay;
         this.actualDay = stringToLocalDate(actualDay);
         
         if(this.actualDay.compareTo(LocalDate.now()) > 0)
             throw new FutureWorkException();
+        
+        extraMinPerDay = getExtraMinPerDay();
+        sumMinPerDay = getSumPerDay();
     }
 
     /**
@@ -120,6 +142,9 @@ public class WorkDay {
             throw new NotSeparatedTimesException();
 
         tasks.add(task);
+        
+        extraMinPerDay = getExtraMinPerDay();
+        sumMinPerDay = getSumPerDay();
     }
     
     /**
@@ -161,14 +186,6 @@ public class WorkDay {
     }
 
     /**
-     * Set the required min per day.
-     * @param requiredMinPerDay
-     */
-    public void setRequiredMinPerDay(long requiredMinPerDay) {
-        this.requiredMinPerDay = requiredMinPerDay;
-    }
-
-    /**
      * Set the actual day.
      * @param actualDay 
      * @exception FutureWorkException
@@ -178,13 +195,5 @@ public class WorkDay {
             throw new FutureWorkException();
         
         this.actualDay = actualDay;
-    }
-
-    public LocalDate getActualDay() {
-        return actualDay;
-    }
-
-    public List<Task> getTasks() {
-        return tasks;
     }
 }

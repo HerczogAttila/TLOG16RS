@@ -10,9 +10,14 @@ import com.avaje.ebean.EbeanServerFactory;
 import com.avaje.ebean.config.DataSourceConfig;
 import com.avaje.ebean.config.ServerConfig;
 import com.herczogattila.tlog16rs.TLOG16RSConfiguration;
+import com.herczogattila.tlog16rs.core.Task;
+import com.herczogattila.tlog16rs.core.TimeLogger;
+import com.herczogattila.tlog16rs.core.WorkDay;
+import com.herczogattila.tlog16rs.core.WorkMonth;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import javax.inject.Inject;
 import liquibase.Contexts;
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -27,6 +32,7 @@ import org.avaje.agentloader.AgentLoader;
  * @author Attila
  */
 public class CreateDatabase {
+    @Inject
     private final EbeanServer ebeanServer;
     private Liquibase liquibase;
     private final DataSourceConfig dataSourceConfig;
@@ -36,16 +42,19 @@ public class CreateDatabase {
         dataSourceConfig = new DataSourceConfig();
                         
         serverConfig = new ServerConfig();
-        serverConfig.setDdlGenerate(true);
-        serverConfig.setDdlRun(true);
+        serverConfig.setDdlGenerate(false);
+        serverConfig.setDdlRun(false);
         serverConfig.setRegister(true);
         serverConfig.setDefaultServer(true);
         serverConfig.setDataSourceConfig(dataSourceConfig);
-        serverConfig.addClass(TestEntity.class);
+        serverConfig.addClass(Task.class);
+        serverConfig.addClass(WorkDay.class);
+        serverConfig.addClass(WorkMonth.class);
+        serverConfig.addClass(TimeLogger.class);
         
         setDataSourceConfig(config);
         setServerConfig(config);
-        updateSchema(config);
+        //updateSchema(config);
         agentLoader();
         ebeanServer = EbeanServerFactory.create(serverConfig);
     }
@@ -66,13 +75,13 @@ public class CreateDatabase {
             Class.forName(config.getDriver());
             Connection c = DriverManager.getConnection(config.getUrl(), config.getName(), config.getPassword());
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(c));
-            liquibase = new Liquibase("src/main/java/com/herczogattila/tlog16rs/resources/migrations.xml", new FileSystemResourceAccessor(), database);
+            liquibase = new Liquibase("src/main/resources/migrations.xml", new FileSystemResourceAccessor(), database);
             liquibase.update(new Contexts("create"));
         } catch(ClassNotFoundException | SQLException | LiquibaseException e) { System.out.println("updateSchema: " + e.getMessage()); }
     }
     
     private void agentLoader() {        
-        if (!AgentLoader.loadAgentFromClasspath("avaje-ebeanorm-agent", "debug=1;packages=com.yourname.tlog16rs.**")) {
+        if (!AgentLoader.loadAgentFromClasspath("avaje-ebeanorm-agent", "debug=1;packages=com.herczogattila.tlog16rs.**")) {
             System.err.println("avaje-ebeanorm-agent not found in classpath - not dynamically loaded");
         }
     }

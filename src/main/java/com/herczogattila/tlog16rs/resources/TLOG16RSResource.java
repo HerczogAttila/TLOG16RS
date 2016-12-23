@@ -5,6 +5,7 @@
  */
 package com.herczogattila.tlog16rs.resources;
 
+import com.avaje.ebean.EbeanServer;
 import com.herczogattila.tlog16rs.TLOG16RSConfiguration;
 import com.herczogattila.tlog16rs.db.CreateDatabase;
 import com.herczogattila.tlog16rs.core.DeleteTaskRB;
@@ -18,10 +19,10 @@ import com.herczogattila.tlog16rs.core.WorkDay;
 import com.herczogattila.tlog16rs.core.WorkDayRB;
 import com.herczogattila.tlog16rs.core.WorkMonth;
 import com.herczogattila.tlog16rs.core.WorkMonthRB;
-import com.herczogattila.tlog16rs.db.TestEntity;
 import groovy.util.logging.Slf4j;
 import java.time.LocalTime;
 import java.util.List;
+import javax.persistence.OptimisticLockException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -40,17 +41,29 @@ import javax.ws.rs.core.MediaType;
 public class TLOG16RSResource {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(TLOG16RSResource.class);
     
-    private final TimeLogger timeLogger = new TimeLogger();
+    private TimeLogger timeLogger;
     private final CreateDatabase database;
+    private final EbeanServer ebeanServer;
     
     public TLOG16RSResource(TLOG16RSConfiguration config) {
+        
         database = new CreateDatabase(config);
+        ebeanServer = database.getEbeanServer();
+        
+        timeLogger = ebeanServer.find(TimeLogger.class, 1);
+        
+        if(timeLogger == null) {
+            timeLogger = new TimeLogger();
+            timeLogger.setId(1);
+            ebeanServer.save(timeLogger);
+        }
     }
     
     private WorkMonth findWorkMonth(int year, int month) {
         for(WorkMonth wm : timeLogger.getMonths()) {
-            if(wm.getYear() == year && wm.getMonth()== month)
+            if(wm.getYear() == year && wm.getMonth() == month) {                
                 return wm;
+            }
         }
         
         return null;
@@ -62,7 +75,8 @@ public class TLOG16RSResource {
             wm = new WorkMonth(year, month);
             try {
                 timeLogger.addMonth(wm);
-            } catch(Exception e) { LOG.warn(e.getMessage()); }
+                ebeanServer.save(timeLogger);
+            } catch(OptimisticLockException e) { LOG.warn(e.getMessage()); }
         }
         
         return wm;
@@ -88,9 +102,11 @@ public class TLOG16RSResource {
         try {
             WorkDay wd = new WorkDay(450, year, month, day);
             wm.addWorkDay(wd);
+            
+            ebeanServer.save(timeLogger);
 
             return wd;
-        } catch(Exception e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
         
         return null;
     }
@@ -119,49 +135,21 @@ public class TLOG16RSResource {
             t.setStartTime(startTime);
             wd.addTask(t);
             
+            ebeanServer.save(timeLogger);
+            
             return t;
-        } catch(Exception e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
         
         return null;
-    }
-    
-    @GET
-    @Produces(MediaType.TEXT_HTML)
-    public String getMenu() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<!DOCTYPE html>");
-        sb.append("<html>");
-        sb.append("<head>");
-        sb.append("<title>Time Logger Menu</title>");
-        sb.append("</head>");
-        sb.append("<body>");
-        sb.append("<a href='workmonths'>List months</a><br>");
-        sb.append("<body>");
-        sb.append("</html>");
-        
-        return sb.toString();
-    }
-    
-    @Path("/workmonths/{year}")
-    @GET
-    @Produces(MediaType.TEXT_HTML)
-    public String getWorkMonth(@PathParam(value = "year") int year) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Months:").append("<br>");
-        timeLogger.getMonths().stream().forEach((wd) -> {
-            if(wd.getYear() == year) {
-                sb.append("<a href='workmonths/").append(year).append("/").append(wd.getMonth()).append("'>").append(wd.getMonth()).append("</a><br>");
-            }
-        });
-        
-        return sb.toString();
     }
     
     @Path("/workmonths")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<WorkMonth> getWorkmonths() {
-        return timeLogger.getMonths();
+        //return timeLogger.getMonths();
+        return ebeanServer.find(WorkMonth.class).findList();
+        //return ebeanServer.find(TimeLogger.class, 1).getMonths();
     }
     
     @Path("/workmonths")
@@ -169,11 +157,16 @@ public class TLOG16RSResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public WorkMonth addNewMonth(WorkMonthRB month) {
+        
+        
         try {
             WorkMonth workMonth = new WorkMonth(month.getYear(), month.getMonth());
             timeLogger.addMonth(workMonth);
+            
+            ebeanServer.save(timeLogger);
+            
             return workMonth;
-        } catch(Exception e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
         
         return null;
     }
@@ -195,9 +188,11 @@ public class TLOG16RSResource {
 
             WorkDay workDay = new WorkDay(day.getRequiredHours(), day.getYear(), day.getMonth(), day.getDay());
             month.addWorkDay(workDay);
+            
+            ebeanServer.save(timeLogger);
 
             return workDay;
-        } catch(Exception e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
         
         return null;
     }
@@ -220,7 +215,10 @@ public class TLOG16RSResource {
             task.setStartTime(startTask.getStartTime());
             task.setComment(startTask.getComment());
             day.addTask(task);
-        } catch(Exception e) { LOG.warn(e.getMessage()); }
+            
+            ebeanServer.save(timeLogger);
+            
+        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
     }
     
     @Path("/workmonths/workdays/tasks/finish")
@@ -230,7 +228,10 @@ public class TLOG16RSResource {
         try {
             Task task = findOrCreateTask(finishTask.getYear(), finishTask.getMonth(), finishTask.getDay(), finishTask.getTaskId(), finishTask.getStartTime());
             task.setEndTime(finishTask.getEndTime());
-        } catch(Exception e) { LOG.warn(e.getMessage()); }
+            
+            ebeanServer.save(timeLogger);
+            
+        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
     }
     
     @Path("/workmonths/workdays/tasks/modify")
@@ -243,7 +244,10 @@ public class TLOG16RSResource {
             task.setComment(modifyTask.getNewComment());
             task.setStartTime(modifyTask.getNewStartTime());
             task.setEndTime(modifyTask.getNewEndTime());
-        } catch(Exception e) { LOG.warn(e.getMessage()); }
+
+            ebeanServer.save(timeLogger);
+            
+        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
     }
     
     @Path("/workmonths/workdays/tasks/delete")
@@ -255,26 +259,21 @@ public class TLOG16RSResource {
             Task t = findTask(deleteTask.getYear(), deleteTask.getMonth(), deleteTask.getDay(), deleteTask.getTaskId(), deleteTask.getStartTime());
             if(t != null)
                 day.getTasks().remove(t);
-        } catch(Exception e) { LOG.warn(e.getMessage()); }
+            
+            ebeanServer.save(timeLogger);
+            
+        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
     }
     
     @Path("/workmonths/deleteall")
     @PUT
     public void deleteAllWorkmonths() {
-        timeLogger.getMonths().clear();
-    }
-    
-    @Path("/save/test")
-    @POST
-    @Consumes(MediaType.TEXT_PLAIN)
-    @Produces(MediaType.TEXT_PLAIN)
-    public String getWorkmonths(String text) {
-        TestEntity test = new TestEntity();
-        test.setText(text);
-        
-        database.getEbeanServer().save(test);
-        
-        return text;
+        ebeanServer.delete(TimeLogger.class, 1);
+        TimeLogger tl = new TimeLogger();
+        tl.setId(1);
+        ebeanServer.save(tl);
+        //timeLogger.getMonths().clear();
+        timeLogger = ebeanServer.find(TimeLogger.class, 1);
     }
 }
 

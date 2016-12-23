@@ -9,27 +9,64 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.herczogattila.tlog16rs.core.exceptions.NotNewDateException;
 import com.herczogattila.tlog16rs.core.exceptions.NotTheSameMonthException;
 import com.herczogattila.tlog16rs.core.exceptions.WeekendNotEnabledException;
+import java.io.Serializable;
 import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 /**
  *
  * @author Attila
  */
-public class WorkMonth {
-    private final List<WorkDay> days;
-    private final YearMonth date;
+@Entity
+@lombok.Getter
+@lombok.Setter
+public class WorkMonth implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @JsonIgnore
+    private int id;
+    
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<WorkDay> days;
+    @Transient
+    private YearMonth yearMonth;
+    private String date;
+    
+    private long extraMinPerMonth, sumPerMonth, requiredMinPerMonth;
+    
+    public WorkMonth() {
+        days = new ArrayList();
+    }
     
     /**
      * @param year
      * @param month 
      */
     public WorkMonth(int year, int month) {
-        days = new ArrayList<>();
-        date = YearMonth.of(year, month);
+        //days = new ArrayList<>();
+        yearMonth = YearMonth.of(year, month);
+        date = yearMonth.toString();
+        
+        extraMinPerMonth = getExtraMinPerMonth();
+        sumPerMonth = getSumPerMonth();
+        requiredMinPerMonth = getRequiredMinPerMonth();
     }
-
+    
+    public static YearMonth stringToYearMonth(String date) {
+        String[] parts = date.split("-");
+        int y = Integer.parseInt(parts[0]);
+        int m = Integer.parseInt(parts[1]);
+        return YearMonth.of(y, m);
+    }
+    
     /**
      * Calculate, how many extra minutes did the employee work in the actual month.
      * @return long
@@ -53,7 +90,7 @@ public class WorkMonth {
      * @return boolean
      */
     public boolean isSameMonth(WorkDay day) {
-        return day.getActualDay().getMonthValue() == date.getMonthValue() && day.getActualDay().getYear() == date.getYear();
+        return day.getActualDay().getMonthValue() == getMonth() && day.getActualDay().getYear() == getYear();
     }
 
     /**
@@ -84,6 +121,10 @@ public class WorkMonth {
             throw new WeekendNotEnabledException();
         
         days.add(day);
+        
+        extraMinPerMonth = getExtraMinPerMonth();
+        sumPerMonth = getSumPerMonth();
+        requiredMinPerMonth = getRequiredMinPerMonth();
     }
 
     /**
@@ -104,19 +145,17 @@ public class WorkMonth {
     
     @JsonIgnore
     public int getYear() {
-        return date.getYear();
+        if(yearMonth == null)
+            yearMonth = stringToYearMonth(date);
+        
+        return yearMonth.getYear();
     }
     
     @JsonIgnore
     public int getMonth() {
-        return date.getMonthValue();
-    }
-
-    public String getDate() {
-        return date.toString();
-    }
-
-    public List<WorkDay> getDays() {
-        return days;
+        if(yearMonth == null)
+            yearMonth = stringToYearMonth(date);
+        
+        return yearMonth.getMonthValue();
     }
 }

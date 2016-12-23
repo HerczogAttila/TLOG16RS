@@ -1,0 +1,1 @@
+java -jar target/TLOG16RS-1.0-SNAPSHOT.jar server src/main/resources/config.yml

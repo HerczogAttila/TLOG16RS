@@ -9,27 +9,9 @@ package com.herczogattila.tlog16rs.core;
  *
  * @author Attila
  */
+@lombok.Getter
+@lombok.Setter
 public class DeleteTaskRB {
     private int year, month, day;
     private String taskId, startTime;
-
-    public int getYear() {
-        return year;
-    }
-
-    public int getMonth() {
-        return month;
-    }
-
-    public int getDay() {
-        return day;
-    }
-
-    public String getTaskId() {
-        return taskId;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
 }

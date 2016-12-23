@@ -9,22 +9,8 @@ package com.herczogattila.tlog16rs.core;
  *
  * @author Attila
  */
+@lombok.Getter
+@lombok.Setter
 public class WorkMonthRB {
     private int year, month;
-    
-    public int getYear() {
-        return year;
-    }
-
-    public void setYear(int year) {
-        this.year = year;
-    }
-
-    public int getMonth() {
-        return month;
-    }
-
-    public void setMonth(int month) {
-        this.month = month;
-    }
 }

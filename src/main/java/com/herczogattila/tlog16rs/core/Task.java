@@ -5,22 +5,40 @@
  */
 package com.herczogattila.tlog16rs.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.herczogattila.tlog16rs.core.exceptions.EmptyTimeFieldException;
 import com.herczogattila.tlog16rs.core.exceptions.InvalidTaskIdException;
 import com.herczogattila.tlog16rs.core.exceptions.NoTaskIdException;
 import com.herczogattila.tlog16rs.core.exceptions.NotExpectedTimeOrderException;
+import java.io.Serializable;
 import java.time.LocalTime;
 import static java.time.temporal.ChronoUnit.MINUTES;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 /**
  *
  * @author Attila
  */
-public final class Task {
+@Entity(name = "task")
+@lombok.Getter
+@lombok.Setter
+public class Task implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @JsonIgnore
+    private Integer id;
     private String taskId;
     private LocalTime startTime;
     private LocalTime endTime;
     private String comment;
+    
+    private long sumMinPerDay;
+
+    public Task() {
+    }
     
     /**
      * @param taskId 
@@ -88,6 +106,8 @@ public final class Task {
         } else {
             throw new EmptyTimeFieldException();
         }
+        
+        sumMinPerDay = getMinPerTask();
     }
     
     /**
@@ -158,14 +178,6 @@ public final class Task {
         return taskId + "\t" + startTime + "\t" + endTime + "\t" + comment;
     }
 
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
     /**
      * Set the start time
      * @param hour
@@ -209,17 +221,5 @@ public final class Task {
             throw new NoTaskIdException();
         
         return taskId;
-    }
-
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public LocalTime getEndTime() {
-        return endTime;
-    }
-
-    public String getComment() {
-        return comment;
     }
 }

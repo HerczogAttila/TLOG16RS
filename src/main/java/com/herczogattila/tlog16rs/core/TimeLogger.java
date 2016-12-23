@@ -5,22 +5,39 @@
  */
 package com.herczogattila.tlog16rs.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.herczogattila.tlog16rs.core.exceptions.NotNewMonthException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 /**
  *
  * @author Attila
  */
-public class TimeLogger {
-    private final List<WorkMonth> months;
+@Entity
+@lombok.Getter
+@lombok.Setter
+public class TimeLogger implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @JsonIgnore
+    private int id;
+        
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<WorkMonth> months;
     
     /**
      * Default Constructor.
      */
     public TimeLogger() {
-        months = new ArrayList<>();
+        //months = new ArrayList();
     }
 
     /**
@@ -43,9 +60,5 @@ public class TimeLogger {
             throw new NotNewMonthException();
         
         months.add(month);
-    }
-
-    public List<WorkMonth> getMonths() {
-        return months;
     }
 }
