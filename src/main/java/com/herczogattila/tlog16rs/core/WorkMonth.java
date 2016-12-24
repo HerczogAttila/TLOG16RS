@@ -28,7 +28,7 @@ import javax.persistence.Transient;
 @Entity
 @lombok.Getter
 @lombok.Setter
-public class WorkMonth implements Serializable {
+public class WorkMonth implements Serializable {    
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @JsonIgnore
