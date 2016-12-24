@@ -48,5 +48,12 @@
             alter table task add constraint fk_task_work_day_id foreign key (work_day_id) references work_day (id) on delete restrict on update restrict;
             create index ix_task_work_day_id on task (work_day_id);
 	</sql>
+    </changeSet>    
+    <changeSet id="2" author="attila" context="addTimeLoggerName" >
+        <addColumn catalogName="timelogger"
+                schemaName="public"
+                tableName="time_logger">
+            <column name="name" type="varchar(255)"/>
+        </addColumn>
     </changeSet>
 </databaseChangeLog>

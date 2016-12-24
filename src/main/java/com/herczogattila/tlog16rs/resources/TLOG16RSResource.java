@@ -22,7 +22,6 @@ import com.herczogattila.tlog16rs.core.WorkMonthRB;
 import groovy.util.logging.Slf4j;
 import java.time.LocalTime;
 import java.util.List;
-import javax.persistence.OptimisticLockException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -53,7 +52,7 @@ public class TLOG16RSResource {
         timeLogger = ebeanServer.find(TimeLogger.class, 1);
         
         if(timeLogger == null) {
-            timeLogger = new TimeLogger();
+            timeLogger = new TimeLogger("default");
             timeLogger.setId(1);
             ebeanServer.save(timeLogger);
         }
@@ -75,8 +74,8 @@ public class TLOG16RSResource {
             wm = new WorkMonth(year, month);
             try {
                 timeLogger.addMonth(wm);
-                ebeanServer.save(timeLogger);
-            } catch(OptimisticLockException e) { LOG.warn(e.getMessage()); }
+                ebeanServer.save(timeLogger);                
+            } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
         }
         
         return wm;
@@ -147,9 +146,7 @@ public class TLOG16RSResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<WorkMonth> getWorkmonths() {
-        //return timeLogger.getMonths();
-        return ebeanServer.find(WorkMonth.class).findList();
-        //return ebeanServer.find(TimeLogger.class, 1).getMonths();
+        return timeLogger.getMonths();
     }
     
     @Path("/workmonths")
@@ -157,8 +154,6 @@ public class TLOG16RSResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public WorkMonth addNewMonth(WorkMonthRB month) {
-        
-        
         try {
             WorkMonth workMonth = new WorkMonth(month.getYear(), month.getMonth());
             timeLogger.addMonth(workMonth);
@@ -269,10 +264,9 @@ public class TLOG16RSResource {
     @PUT
     public void deleteAllWorkmonths() {
         ebeanServer.delete(TimeLogger.class, 1);
-        TimeLogger tl = new TimeLogger();
+        TimeLogger tl = new TimeLogger("cleared");
         tl.setId(1);
         ebeanServer.save(tl);
-        //timeLogger.getMonths().clear();
         timeLogger = ebeanServer.find(TimeLogger.class, 1);
     }
 }

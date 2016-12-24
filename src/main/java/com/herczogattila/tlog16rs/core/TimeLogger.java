@@ -29,15 +29,21 @@ public class TimeLogger implements Serializable {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @JsonIgnore
     private int id;
+    private String name;
         
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<WorkMonth> months;
+
+    public TimeLogger() {
+    }
     
     /**
      * Default Constructor.
+     * @param name
      */
-    public TimeLogger() {
+    public TimeLogger(String name) {
         //months = new ArrayList();
+        this.name = name;
     }
 
     /**

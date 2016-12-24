@@ -54,7 +54,7 @@ public class CreateDatabase {
         
         setDataSourceConfig(config);
         setServerConfig(config);
-        //updateSchema(config);
+        updateSchema(config);
         agentLoader();
         ebeanServer = EbeanServerFactory.create(serverConfig);
     }
@@ -76,7 +76,7 @@ public class CreateDatabase {
             Connection c = DriverManager.getConnection(config.getUrl(), config.getName(), config.getPassword());
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(c));
             liquibase = new Liquibase("src/main/resources/migrations.xml", new FileSystemResourceAccessor(), database);
-            liquibase.update(new Contexts("create"));
+            liquibase.update("addTimeLoggerName");
         } catch(ClassNotFoundException | SQLException | LiquibaseException e) { System.out.println("updateSchema: " + e.getMessage()); }
     }
     
