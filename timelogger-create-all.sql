@@ -1,5 +1,6 @@
 create table time_logger (
   id                            integer auto_increment not null,
+  name                          varchar(255),
   constraint pk_time_logger primary key (id)
 );
 

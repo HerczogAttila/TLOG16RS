@@ -1,6 +1,6 @@
 name: timelogger
 password: 633Ym2aZ5b9Wtzh4EJc4pANx
 #url: jdbc:mariadb://127.0.0.1:9005/timelogger
-url: jdbc:mariadb://192.168.99.100:32770/timelogger
+url: jdbc:mariadb://192.168.99.100:9005/timelogger
 driver: org.mariadb.jdbc.Driver
 serverConfigName: timelogger

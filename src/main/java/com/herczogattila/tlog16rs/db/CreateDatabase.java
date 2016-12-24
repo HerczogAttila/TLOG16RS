@@ -76,6 +76,7 @@ public class CreateDatabase {
             Connection c = DriverManager.getConnection(config.getUrl(), config.getName(), config.getPassword());
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(c));
             liquibase = new Liquibase("src/main/resources/migrations.xml", new FileSystemResourceAccessor(), database);
+            liquibase.update("create");
             liquibase.update("addTimeLoggerName");
         } catch(ClassNotFoundException | SQLException | LiquibaseException e) { System.out.println("updateSchema: " + e.getMessage()); }
     }
