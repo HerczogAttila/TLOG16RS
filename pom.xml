@@ -85,6 +85,33 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.4.10</version>
+                <configuration>
+                    <imageName>trainingproject/tlog16rs</imageName>
+                    <baseImage>java:openjdk-8-jdk-alpine</baseImage>
+                    <entryPoint>["java","-jar","/${project.build.finalName}.jar", "server", "src/main/resources/config.yml"]</entryPoint>
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                        <resource>
+                            <targetPath>/src/main/resources</targetPath>
+                            <directory>${project.build.directory}/../src/main/resources/</directory>
+                            <include>config.yml</include>
+                        </resource>
+                        <resource>
+                            <targetPath>/src/main/resources</targetPath>
+                            <directory>${project.build.directory}/../src/main/resources/</directory>
+                            <include>migrations.xml</include>
+                        </resource>
+                    </resources>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.avaje.ebean</groupId>
                 <artifactId>ebean-maven-plugin</artifactId>
                 <version>8.2.1</version>
