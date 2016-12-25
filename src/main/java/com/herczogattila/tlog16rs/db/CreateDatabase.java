@@ -35,7 +35,6 @@ public class CreateDatabase {
     
     @Inject
     private final EbeanServer ebeanServer;
-    private Liquibase liquibase;
     private final DataSourceConfig dataSourceConfig;
     private final ServerConfig serverConfig;
     
@@ -77,7 +76,7 @@ public class CreateDatabase {
             Class.forName(config.getDriver());
             c = DriverManager.getConnection(config.getUrl(), config.getName(), config.getPassword());
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(c));
-            liquibase = new Liquibase("src/main/resources/migrations.xml", new FileSystemResourceAccessor(), database);
+            Liquibase liquibase = new Liquibase("src/main/resources/migrations.xml", new FileSystemResourceAccessor(), database);
             liquibase.update("create");
             liquibase.update("addTimeLoggerName");
             c.close();

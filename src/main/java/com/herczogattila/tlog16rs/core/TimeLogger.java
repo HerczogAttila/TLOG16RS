@@ -51,8 +51,8 @@ public class TimeLogger implements Serializable {
     * @return boolean
     */
     public boolean isNewMonth(WorkMonth month) {
-        return months.stream().noneMatch((d) -> (d.getMonth() == month.getMonth() &&
-                d.getYear() == month.getYear()));
+        return months.stream().noneMatch(d -> d.getMonth() == month.getMonth() &&
+                d.getYear() == month.getYear());
     }
 
     /**

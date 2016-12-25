@@ -157,7 +157,7 @@ public class Task implements Serializable {
      * @return 
      */
     public boolean isMultipleQuarterHour() {
-        return (getMinPerTask() % 15 == 0);
+        return getMinPerTask() % 15 == 0;
     }
     
     /**

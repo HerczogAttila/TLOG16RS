@@ -42,7 +42,8 @@ public class WorkDay implements Serializable {
     private long requiredMinPerDay;
     private transient LocalDate actualDay;
     
-    private long extraMinPerDay, sumMinPerDay;
+    private long extraMinPerDay;
+    private long sumMinPerDay;
     
     /**
      * Default Constructor.
@@ -115,15 +116,12 @@ public class WorkDay implements Serializable {
      */
     public boolean isSeparatedTime(Task task) {
         if(task.getEndTime() == null)
-            return tasks.stream().noneMatch((t) -> (
+            return tasks.stream().noneMatch(t -> 
                 t.getEndTime() != null &&
-                (t.getEndTime().isAfter(task.getStartTime()) && t.getStartTime().isBefore(task.getStartTime())))
+                t.getEndTime().isAfter(task.getStartTime()) && t.getStartTime().isBefore(task.getStartTime())
             );
         
-        return tasks.stream().noneMatch((t) -> (
-                t.getEndTime() != null && t.isSeparatedTime(task)
-            )
-        );
+        return tasks.stream().noneMatch(t -> t.getEndTime() != null && t.isSeparatedTime(task));
     }
     
     /**
@@ -159,7 +157,7 @@ public class WorkDay implements Serializable {
      * @return long
      */
     public long getSumPerDay() {
-        return tasks.stream().mapToLong(s -> s.getMinPerTask()).sum();
+        return tasks.stream().mapToLong(Task::getMinPerTask).sum();
     }
     
     /**

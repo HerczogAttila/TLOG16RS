@@ -12,5 +12,6 @@ package com.herczogattila.tlog16rs.core;
 @lombok.Getter
 @lombok.Setter
 public class WorkMonthRB {
-    private int year, month;
+    private int year;
+    private int month;
 }

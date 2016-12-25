@@ -12,6 +12,10 @@ package com.herczogattila.tlog16rs.core;
 @lombok.Getter
 @lombok.Setter
 public class FinishingTaskRB {
-    private int year, month, day;
-    private String taskId, startTime, endTime;
+    private int year;
+    private int month;
+    private int day;
+    private String taskId;
+    private String startTime;
+    private String endTime;
 }

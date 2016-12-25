@@ -12,5 +12,8 @@ package com.herczogattila.tlog16rs.core;
 @lombok.Getter
 @lombok.Setter
 public class WorkDayRB {
-    private int year, month, day, requiredHours;
+    private int year;
+    private int month;
+    private int day;
+    private int requiredHours;
 }

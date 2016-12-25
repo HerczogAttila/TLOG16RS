@@ -12,6 +12,9 @@ package com.herczogattila.tlog16rs.core;
 @lombok.Getter
 @lombok.Setter
 public class DeleteTaskRB {
-    private int year, month, day;
-    private String taskId, startTime;
+    private int year;
+    private int month;
+    private int day;
+    private String taskId;
+    private String startTime;
 }

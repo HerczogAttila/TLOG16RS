@@ -12,6 +12,13 @@ package com.herczogattila.tlog16rs.core;
 @lombok.Getter
 @lombok.Setter
 public class ModifyTaskRB {
-    private int year, month, day;
-    private String taskId, startTime, newTaskId, newStartTime, newEndTime, newComment;
+    private int year;
+    private int month;
+    private int day;
+    private String taskId;
+    private String startTime;
+    private String newTaskId;
+    private String newStartTime;
+    private String newEndTime;
+    private String newComment;
 }

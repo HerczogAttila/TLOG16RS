@@ -40,7 +40,9 @@ public class WorkMonth implements Serializable {
     private transient YearMonth yearMonth;
     private String date;
     
-    private long extraMinPerMonth, sumPerMonth, requiredMinPerMonth;
+    private long extraMinPerMonth;
+    private long sumPerMonth;
+    private long requiredMinPerMonth;
     
     public WorkMonth() {
         days = new ArrayList();
@@ -81,7 +83,7 @@ public class WorkMonth implements Serializable {
      * @return boolean
      */
     public boolean isNewDate(WorkDay day) {
-        return days.stream().noneMatch((d) -> (d.getActualDay().getDayOfMonth() == day.getActualDay().getDayOfMonth()));
+        return days.stream().noneMatch(d -> d.getActualDay().getDayOfMonth() == day.getActualDay().getDayOfMonth());
     }
 
     /**
@@ -132,7 +134,7 @@ public class WorkMonth implements Serializable {
      * @return long
      */
     public long getSumPerMonth() {
-        return days.stream().mapToLong(s -> s.getSumPerDay()).sum();
+        return days.stream().mapToLong(WorkDay::getSumPerDay).sum();
     }
     
     /**
@@ -140,7 +142,7 @@ public class WorkMonth implements Serializable {
      * @return long
      */
     public long getRequiredMinPerMonth() {
-        return days.stream().mapToLong(s -> s.getRequiredMinPerDay()).sum();
+        return days.stream().mapToLong(WorkDay::getRequiredMinPerDay).sum();
     }
     
     @JsonIgnore
