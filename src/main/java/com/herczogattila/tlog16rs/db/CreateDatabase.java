@@ -18,7 +18,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import javax.inject.Inject;
-import liquibase.Contexts;
 import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
@@ -32,6 +31,8 @@ import org.avaje.agentloader.AgentLoader;
  * @author Attila
  */
 public class CreateDatabase {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(CreateDatabase.class);
+    
     @Inject
     private final EbeanServer ebeanServer;
     private Liquibase liquibase;
@@ -71,19 +72,31 @@ public class CreateDatabase {
     }
 
     private void updateSchema(TLOG16RSConfiguration config) {
+        Connection c = null;
         try {
             Class.forName(config.getDriver());
-            Connection c = DriverManager.getConnection(config.getUrl(), config.getName(), config.getPassword());
+            c = DriverManager.getConnection(config.getUrl(), config.getName(), config.getPassword());
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(c));
             liquibase = new Liquibase("src/main/resources/migrations.xml", new FileSystemResourceAccessor(), database);
             liquibase.update("create");
             liquibase.update("addTimeLoggerName");
-        } catch(ClassNotFoundException | SQLException | LiquibaseException e) { System.out.println("updateSchema: " + e.getMessage()); }
+            c.close();
+        } catch(ClassNotFoundException | SQLException | LiquibaseException e) {
+            LOG.error("updateSchema: " + e.getMessage(), e);
+        }
+        finally {
+            try {
+                if(c != null)
+                    c.close();
+            } catch (SQLException e) {
+                LOG.error("updateSchema: " + e.getMessage(), e);
+            }
+        }
     }
     
     private void agentLoader() {        
         if (!AgentLoader.loadAgentFromClasspath("avaje-ebeanorm-agent", "debug=1;packages=com.herczogattila.tlog16rs.**")) {
-            System.err.println("avaje-ebeanorm-agent not found in classpath - not dynamically loaded");
+            LOG.error("avaje-ebeanorm-agent not found in classpath - not dynamically loaded");
         }
     }
 

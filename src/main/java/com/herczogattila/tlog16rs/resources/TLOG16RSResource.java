@@ -21,6 +21,7 @@ import com.herczogattila.tlog16rs.core.WorkMonth;
 import com.herczogattila.tlog16rs.core.WorkMonthRB;
 import groovy.util.logging.Slf4j;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -75,20 +76,10 @@ public class TLOG16RSResource {
             try {
                 timeLogger.addMonth(wm);
                 ebeanServer.save(timeLogger);                
-            } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
+            } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
         }
         
         return wm;
-    }
-    
-    private WorkDay findWorkDay(int year, int month, int day) {
-        WorkMonth wm = findOrCreateWorkMonth(year, month);
-        for(WorkDay wd : wm.getDays()) {
-            if(wd.getActualDay().getDayOfMonth() == day)
-                return wd;
-        }
-        
-        return null;
     }
     
     private WorkDay findOrCreateWorkDay(int year, int month, int day) {
@@ -105,7 +96,7 @@ public class TLOG16RSResource {
             ebeanServer.save(timeLogger);
 
             return wd;
-        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
         
         return null;
     }
@@ -113,6 +104,9 @@ public class TLOG16RSResource {
     private Task findTask(int year, int month, int day, String taskId, String startTime) {
         LocalTime start = stringToLocalTime(startTime);
         WorkDay wd = findOrCreateWorkDay(year, month, day);
+        if(wd == null)
+            return null;
+        
         for(Task t : wd.getTasks()) {
             if(t.getTaskId().equals(taskId) && t.getStartTime().equals(start))
                 return t;
@@ -124,6 +118,9 @@ public class TLOG16RSResource {
     private Task findOrCreateTask(int year, int month, int day, String taskId, String startTime) {
         LocalTime start = stringToLocalTime(startTime);
         WorkDay wd = findOrCreateWorkDay(year, month, day);
+        if(wd == null)
+            return null;
+        
         for(Task t : wd.getTasks()) {
             if(t.getTaskId().equals(taskId) && t.getStartTime().equals(start))
                 return t;
@@ -137,7 +134,7 @@ public class TLOG16RSResource {
             ebeanServer.save(timeLogger);
             
             return t;
-        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
         
         return null;
     }
@@ -161,7 +158,7 @@ public class TLOG16RSResource {
             ebeanServer.save(timeLogger);
             
             return workMonth;
-        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
         
         return null;
     }
@@ -187,7 +184,7 @@ public class TLOG16RSResource {
             ebeanServer.save(timeLogger);
 
             return workDay;
-        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
         
         return null;
     }
@@ -196,7 +193,11 @@ public class TLOG16RSResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<Task> getWorkDay(@PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
-        return findOrCreateWorkDay(year, month, day).getTasks();
+        WorkDay wd = findOrCreateWorkDay(year, month, day);
+        if (wd != null)
+            return wd.getTasks();
+        
+        return new ArrayList<>();
     }
     
     @Path("/workmonths/workdays/tasks/start")
@@ -205,6 +206,8 @@ public class TLOG16RSResource {
     public void startTask(StartTaskRB startTask) {
         try {
             WorkDay day = findOrCreateWorkDay(startTask.getYear(), startTask.getMonth(), startTask.getDay());
+            if(day == null)
+                return;
 
             Task task = new Task(startTask.getTaskId());
             task.setStartTime(startTask.getStartTime());
@@ -213,7 +216,7 @@ public class TLOG16RSResource {
             
             ebeanServer.save(timeLogger);
             
-        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
     }
     
     @Path("/workmonths/workdays/tasks/finish")
@@ -222,11 +225,14 @@ public class TLOG16RSResource {
     public void finishTask(FinishingTaskRB finishTask) {
         try {
             Task task = findOrCreateTask(finishTask.getYear(), finishTask.getMonth(), finishTask.getDay(), finishTask.getTaskId(), finishTask.getStartTime());
+            if(task == null)
+                return;
+            
             task.setEndTime(finishTask.getEndTime());
             
             ebeanServer.save(timeLogger);
             
-        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
     }
     
     @Path("/workmonths/workdays/tasks/modify")
@@ -235,6 +241,9 @@ public class TLOG16RSResource {
     public void modifyTask(ModifyTaskRB modifyTask) {
         try {
             Task task = findOrCreateTask(modifyTask.getYear(), modifyTask.getMonth(), modifyTask.getDay(), modifyTask.getTaskId(), modifyTask.getStartTime());
+            if(task == null)
+                return;
+            
             task.setTaskId(modifyTask.getNewTaskId());
             task.setComment(modifyTask.getNewComment());
             task.setStartTime(modifyTask.getNewStartTime());
@@ -242,7 +251,7 @@ public class TLOG16RSResource {
 
             ebeanServer.save(timeLogger);
             
-        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
     }
     
     @Path("/workmonths/workdays/tasks/delete")
@@ -251,13 +260,16 @@ public class TLOG16RSResource {
     public void deleteTask(DeleteTaskRB deleteTask) {
         try {
             WorkDay day = findOrCreateWorkDay(deleteTask.getYear(), deleteTask.getMonth(), deleteTask.getDay());
+            if(day == null)
+                return;
+            
             Task t = findTask(deleteTask.getYear(), deleteTask.getMonth(), deleteTask.getDay(), deleteTask.getTaskId(), deleteTask.getStartTime());
             if(t != null)
                 day.getTasks().remove(t);
             
             ebeanServer.save(timeLogger);
             
-        } catch(RuntimeException e) { LOG.warn(e.getMessage()); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
     }
     
     @Path("/workmonths/deleteall")

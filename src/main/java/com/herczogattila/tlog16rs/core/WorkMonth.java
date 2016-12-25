@@ -37,7 +37,7 @@ public class WorkMonth implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<WorkDay> days;
     @Transient
-    private YearMonth yearMonth;
+    private transient YearMonth yearMonth;
     private String date;
     
     private long extraMinPerMonth, sumPerMonth, requiredMinPerMonth;
@@ -51,7 +51,7 @@ public class WorkMonth implements Serializable {
      * @param month 
      */
     public WorkMonth(int year, int month) {
-        //days = new ArrayList<>();
+        days = new ArrayList<>();
         yearMonth = YearMonth.of(year, month);
         date = yearMonth.toString();
         

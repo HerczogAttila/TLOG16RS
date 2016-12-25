@@ -26,19 +26,20 @@ import javax.persistence.Id;
 @lombok.Getter
 @lombok.Setter
 public class Task implements Serializable {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(Task.class);
+    
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @JsonIgnore
     private Integer id;
     private String taskId;
-    private LocalTime startTime;
-    private LocalTime endTime;
+    private transient LocalTime startTime;
+    private transient LocalTime endTime;
     private String comment;
     
     private long sumMinPerDay;
 
-    public Task() {
-    }
+    public Task() { this("1234"); }
     
     /**
      * @param taskId 
@@ -97,9 +98,9 @@ public class Task implements Serializable {
         try {
             this.startTime = stringToLocalTime(startTime);
             this.endTime = stringToLocalTime(endTime);
-        } catch(Exception e) { System.out.println(e); }
+        } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
 
-        if(this.startTime != null & this.endTime != null) {
+        if(this.startTime != null && this.endTime != null) {
             if(this.startTime.compareTo(this.endTime) > 0) {
                 throw new NotExpectedTimeOrderException();
             }
@@ -221,5 +222,15 @@ public class Task implements Serializable {
             throw new NoTaskIdException();
         
         return taskId;
+    }
+    
+    public boolean isSeparatedTime(Task task) {
+        if (endTime.isAfter(task.startTime) && startTime.isBefore(task.startTime))
+            return true;
+        
+        if (endTime.isAfter(task.endTime) && startTime.isBefore(task.endTime))
+            return true;
+        
+        return startTime.equals(task.startTime) && endTime.equals(task.endTime);
     }
 }

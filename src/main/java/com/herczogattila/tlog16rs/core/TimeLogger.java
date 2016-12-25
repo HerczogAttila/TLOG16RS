@@ -34,15 +34,14 @@ public class TimeLogger implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<WorkMonth> months;
 
-    public TimeLogger() {
-    }
+    public TimeLogger() { this("default"); }
     
     /**
      * Default Constructor.
      * @param name
      */
     public TimeLogger(String name) {
-        //months = new ArrayList();
+        months = new ArrayList();
         this.name = name;
     }
 

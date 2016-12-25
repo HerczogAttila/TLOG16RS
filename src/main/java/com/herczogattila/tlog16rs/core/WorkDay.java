@@ -14,6 +14,7 @@ import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -39,7 +40,7 @@ public class WorkDay implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Task> tasks;
     private long requiredMinPerDay;
-    private LocalDate actualDay;
+    private transient LocalDate actualDay;
     
     private long extraMinPerDay, sumMinPerDay;
     
@@ -75,7 +76,7 @@ public class WorkDay implements Serializable {
         if(requiredMinPerDay < 0)
             throw new NegativeMinutesOfWorkException();
 
-        //tasks = new ArrayList();
+        tasks = new ArrayList();
         this.requiredMinPerDay = requiredMinPerDay;
         this.actualDay = stringToLocalDate(actualDay);
         
@@ -120,10 +121,7 @@ public class WorkDay implements Serializable {
             );
         
         return tasks.stream().noneMatch((t) -> (
-                t.getEndTime() != null &&
-                (t.getEndTime().isAfter(task.getStartTime()) && t.getStartTime().isBefore(task.getStartTime())) ||
-                (t.getEndTime().isAfter(task.getEndTime()) && t.getStartTime().isBefore(task.getEndTime())) ||
-                (t.getStartTime().equals(task.getStartTime()) && t.getEndTime().equals(task.getEndTime()))
+                t.getEndTime() != null && t.isSeparatedTime(task)
             )
         );
     }
