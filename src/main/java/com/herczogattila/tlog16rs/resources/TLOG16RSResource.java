@@ -189,6 +189,25 @@ public class TLOG16RSResource {
         return null;
     }
     
+    @Path("/workmonths/workweekenddays")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public WorkDay addNewWeekendDay(WorkDayRB day) {
+        try {
+            WorkMonth month = findOrCreateWorkMonth(day.getYear(), day.getMonth());
+
+            WorkDay workDay = new WorkDay(day.getRequiredHours(), day.getYear(), day.getMonth(), day.getDay());
+            month.addWorkDay(workDay, true);
+            
+            ebeanServer.save(timeLogger);
+
+            return workDay;
+        } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
+        
+        return null;
+    }
+    
     @Path("/workmonths/{year}/{month}/{day}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
