@@ -202,7 +202,11 @@ public class Task implements Serializable {
      * @param min 
      */
     public void setEndTime(int hour, int min) {
-        endTime = LocalTime.of(hour, min);
+        LocalTime newEndTime = LocalTime.of(hour, min);
+        if(startTime != null && this.startTime.compareTo(newEndTime) > 0)
+            throw new NotExpectedTimeOrderException();
+        
+        this.endTime = newEndTime;
     }
 
     /**
@@ -210,7 +214,12 @@ public class Task implements Serializable {
      * @param endTime 
      */
     public void setEndTime(String endTime) {
-        this.endTime = stringToLocalTime(endTime);
+        LocalTime newEndTime = stringToLocalTime(endTime);
+        
+        if(startTime != null && this.startTime.compareTo(newEndTime) > 0)
+            throw new NotExpectedTimeOrderException();
+        
+        this.endTime = newEndTime;
     }
 
     /**

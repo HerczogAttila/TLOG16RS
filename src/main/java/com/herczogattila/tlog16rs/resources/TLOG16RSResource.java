@@ -81,7 +81,7 @@ public class TLOG16RSResource {
         
         return wm;
     }
-    
+
     private WorkDay findOrCreateWorkDay(int year, int month, int day) {
         WorkMonth wm = findOrCreateWorkMonth(year, month);
         for(WorkDay wd : wm.getDays()) {
@@ -189,7 +189,7 @@ public class TLOG16RSResource {
         return null;
     }
     
-    @Path("/workmonths/workweekenddays")
+    @Path("/workmonths/workdaysweekend")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -243,11 +243,15 @@ public class TLOG16RSResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public void finishTask(FinishingTaskRB finishTask) {
         try {
-            Task task = findOrCreateTask(finishTask.getYear(), finishTask.getMonth(), finishTask.getDay(), finishTask.getTaskId(), finishTask.getStartTime());
-            if(task == null)
-                return;
-            
-            task.setEndTime(finishTask.getEndTime());
+            Task task = findTask(finishTask.getYear(), finishTask.getMonth(), finishTask.getDay(), finishTask.getTaskId(), finishTask.getStartTime());
+            if(task == null) {
+                WorkDay wd = findOrCreateWorkDay(finishTask.getYear(), finishTask.getMonth(), finishTask.getDay());
+                if(wd != null) {
+                    task = new Task(finishTask.getTaskId(), "", finishTask.getStartTime(), finishTask.getEndTime());
+                    wd.addTask(task);
+                }
+            } else
+                task.setEndTime(finishTask.getEndTime());
             
             ebeanServer.save(timeLogger);
             
