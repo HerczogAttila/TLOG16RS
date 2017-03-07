@@ -3,34 +3,31 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.herczogattila.tlog16rs.core;
+package com.herczogattila.tlog16rs.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.herczogattila.tlog16rs.core.exceptions.EmptyTimeFieldException;
 import com.herczogattila.tlog16rs.core.exceptions.InvalidTaskIdException;
 import com.herczogattila.tlog16rs.core.exceptions.NoTaskIdException;
 import com.herczogattila.tlog16rs.core.exceptions.NotExpectedTimeOrderException;
-import java.io.Serializable;
 import java.time.LocalTime;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 /**
  *
  * @author Attila
  */
-@Entity(name = "task")
+@Entity
 @lombok.Getter
 @lombok.Setter
-public class Task implements Serializable {
+public class Task {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(Task.class);
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @JsonIgnore
+    @GeneratedValue
     private Integer id;
     private String taskId;
     private transient LocalTime startTime;
@@ -126,6 +123,7 @@ public class Task implements Serializable {
     /**
      * @return boolean
      */
+    @JsonIgnore
     public boolean isValidTaskId() {
         return isValidRedmineTaskId() || isValidLTTaskId();
     }
@@ -134,6 +132,7 @@ public class Task implements Serializable {
      * @return boolean
      * @exception NoTaskIdException
      */
+    @JsonIgnore
     public boolean isValidRedmineTaskId() {
         if(taskId.isEmpty())
             throw new NoTaskIdException();
@@ -145,6 +144,7 @@ public class Task implements Serializable {
      * @return boolean
      * @exception NoTaskIdException
      */
+    @JsonIgnore
     public boolean isValidLTTaskId() {
         if(taskId.isEmpty())
             throw new NoTaskIdException();
@@ -156,6 +156,7 @@ public class Task implements Serializable {
      * Time interval should be the multiple of the quarter hour.
      * @return 
      */
+    @JsonIgnore
     public boolean isMultipleQuarterHour() {
         return getMinPerTask() % 15 == 0;
     }

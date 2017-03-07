@@ -10,10 +10,10 @@ import com.avaje.ebean.EbeanServerFactory;
 import com.avaje.ebean.config.DataSourceConfig;
 import com.avaje.ebean.config.ServerConfig;
 import com.herczogattila.tlog16rs.TLOG16RSConfiguration;
-import com.herczogattila.tlog16rs.core.Task;
-import com.herczogattila.tlog16rs.core.TimeLogger;
-import com.herczogattila.tlog16rs.core.WorkDay;
-import com.herczogattila.tlog16rs.core.WorkMonth;
+import com.herczogattila.tlog16rs.entities.Task;
+import com.herczogattila.tlog16rs.entities.TimeLogger;
+import com.herczogattila.tlog16rs.entities.WorkDay;
+import com.herczogattila.tlog16rs.entities.WorkMonth;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -40,6 +40,7 @@ public class CreateDatabase {
     
     public CreateDatabase(TLOG16RSConfiguration config) {
         dataSourceConfig = new DataSourceConfig();
+        setDataSourceConfig(config);
                         
         serverConfig = new ServerConfig();
         serverConfig.setDdlGenerate(false);
@@ -52,7 +53,7 @@ public class CreateDatabase {
         serverConfig.addClass(WorkMonth.class);
         serverConfig.addClass(TimeLogger.class);
         
-        setDataSourceConfig(config);
+        
         setServerConfig(config);
         updateSchema(config);
         agentLoader();

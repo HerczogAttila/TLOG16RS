@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.herczogattila.tlog16rs.core;
+package com.herczogattila.tlog16rs.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.herczogattila.tlog16rs.core.exceptions.FutureWorkException;

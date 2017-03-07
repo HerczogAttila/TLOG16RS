@@ -11,7 +11,6 @@ services:
     - DB_USER=timelogger
     - DB_PASS=633Ym2aZ5b9Wtzh4EJc4pANx
     - DB_URL=jdbc:mariadb://mariadb:3306/timelogger
-
   mariadb:
     image: mariadb:5.5.51
     container_name: mariadb
@@ -20,13 +19,12 @@ services:
     volumes:
     - "./database:/var/lib/mysql"
     ports:
-    - "9005:3306"
+    - "9001:3306"
     environment:
     - MYSQL_DATABASE=timelogger
     - MYSQL_USER=timelogger
     - MYSQL_PASSWORD=633Ym2aZ5b9Wtzh4EJc4pANx
     - MYSQL_ROOT_PASSWORD=633Ym2aZ5b9Wtzh4EJc4pANx
-
   sonarqube:
     image: sonarqube
     container_name: sonarqube
@@ -35,7 +33,6 @@ services:
     ports:
     - "9000:9000"
     - "9092:9092"
-
 networks:
   tlog:
     driver: bridge

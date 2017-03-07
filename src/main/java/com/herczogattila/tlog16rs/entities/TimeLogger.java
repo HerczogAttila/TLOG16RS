@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.herczogattila.tlog16rs.core;
+package com.herczogattila.tlog16rs.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.herczogattila.tlog16rs.core.exceptions.NotNewMonthException;
@@ -13,7 +13,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
@@ -26,8 +25,7 @@ import javax.persistence.OneToMany;
 @lombok.Setter
 public class TimeLogger implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @JsonIgnore
+    @GeneratedValue
     private int id;
     private String name;
         
@@ -36,30 +34,16 @@ public class TimeLogger implements Serializable {
 
     public TimeLogger() { this("default"); }
     
-    /**
-     * Default Constructor.
-     * @param name
-     */
     public TimeLogger(String name) {
         months = new ArrayList();
         this.name = name;
     }
 
-    /**
-    * Decides, if this month already exists or not.
-    * @param month 
-    * @return boolean
-    */
     public boolean isNewMonth(WorkMonth month) {
         return months.stream().noneMatch(d -> d.getMonth() == month.getMonth() &&
                 d.getYear() == month.getYear());
     }
 
-    /**
-     * Adds a new month to the months list if it is new.
-     * @param month 
-     * @exception NotNewMonthException
-     */
     public void addMonth(WorkMonth month) {
         if(!isNewMonth(month))
             throw new NotNewMonthException();
