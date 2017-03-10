@@ -11,6 +11,7 @@ import com.herczogattila.tlog16rs.db.CreateDatabase;
 import com.herczogattila.tlog16rs.core.DeleteTaskRB;
 import com.herczogattila.tlog16rs.core.FinishingTaskRB;
 import com.herczogattila.tlog16rs.core.ModifyTaskRB;
+import com.herczogattila.tlog16rs.core.ModifyWorkDayRB;
 import com.herczogattila.tlog16rs.core.StartTaskRB;
 import com.herczogattila.tlog16rs.entities.Task;
 import static com.herczogattila.tlog16rs.entities.Task.stringToLocalTime;
@@ -208,10 +209,45 @@ public class TLOG16RSResource {
         return null;
     }
     
+    @Path("/workmonths/workdays/{year}/{month}/{day}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public WorkDay getWorkDay(@PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
+        try {
+            WorkDay workDay = findOrCreateWorkDay(year, month, day);
+            if (workDay != null) {
+                return workDay;
+            }
+        } catch(RuntimeException e) {
+            LOG.warn(e.getMessage(), e);
+        }
+        
+        return null;
+    }
+    
+    @Path("/workmonths/workdays/modify")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public WorkDay modifyWorkDay(ModifyWorkDayRB modifyWorkDay) {
+        try {
+            WorkDay workDay = findOrCreateWorkDay(modifyWorkDay.getYear(), modifyWorkDay.getMonth(), modifyWorkDay.getDay());
+            if (workDay != null) {
+                workDay.setRequiredMinPerDay(modifyWorkDay.getRequiredMinutes());
+                workDay.Refresh();
+                return workDay;
+            }
+        } catch(RuntimeException e) {
+            LOG.warn(e.getMessage(), e);
+        }
+        
+        return null;
+    }
+    
     @Path("/workmonths/{year}/{month}/{day}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Task> getWorkDay(@PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
+    public List<Task> getWorkDayTasks(@PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
         WorkDay wd = findOrCreateWorkDay(year, month, day);
         if (wd != null)
             return wd.getTasks();
@@ -250,8 +286,13 @@ public class TLOG16RSResource {
                     task = new Task(finishTask.getTaskId(), "", finishTask.getStartTime(), finishTask.getEndTime());
                     wd.addTask(task);
                 }
-            } else
+            } else {
                 task.setEndTime(finishTask.getEndTime());
+                WorkDay wd = findOrCreateWorkDay(finishTask.getYear(), finishTask.getMonth(), finishTask.getDay());
+                if(wd != null) {
+                    wd.Refresh();
+                }
+            }
             
             ebeanServer.save(timeLogger);
             
@@ -271,6 +312,11 @@ public class TLOG16RSResource {
             task.setComment(modifyTask.getNewComment());
             task.setStartTime(modifyTask.getNewStartTime());
             task.setEndTime(modifyTask.getNewEndTime());
+            
+            WorkDay wd = findOrCreateWorkDay(modifyTask.getYear(), modifyTask.getMonth(), modifyTask.getDay());
+            if(wd != null) {
+                wd.Refresh();
+            }
 
             ebeanServer.save(timeLogger);
             
@@ -289,6 +335,8 @@ public class TLOG16RSResource {
             Task t = findTask(deleteTask.getYear(), deleteTask.getMonth(), deleteTask.getDay(), deleteTask.getTaskId(), deleteTask.getStartTime());
             if(t != null)
                 day.getTasks().remove(t);
+            
+            day.Refresh();
             
             ebeanServer.save(timeLogger);
             

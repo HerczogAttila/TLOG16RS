@@ -21,3 +21,4 @@ buildNumber.properties
 .mvn/timing.properties
 /build/
 /.nb-gradle/
+/.gradle/

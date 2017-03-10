@@ -84,8 +84,7 @@ public class WorkDay implements Serializable {
         if(this.actualDay.compareTo(LocalDate.now()) > 0)
             throw new FutureWorkException();
         
-        extraMinPerDay = getExtraMinPerDay();
-        sumMinPerDay = getSumPerDay();
+        Refresh();
     }
 
     /**
@@ -139,8 +138,7 @@ public class WorkDay implements Serializable {
 
         tasks.add(task);
         
-        extraMinPerDay = getExtraMinPerDay();
-        sumMinPerDay = getSumPerDay();
+        Refresh();
     }
     
     /**
@@ -191,5 +189,10 @@ public class WorkDay implements Serializable {
             throw new FutureWorkException();
         
         this.actualDay = actualDay;
+    }
+    
+    public void Refresh() {
+        extraMinPerDay = getExtraMinPerDay();
+        sumMinPerDay = getSumPerDay();
     }
 }
