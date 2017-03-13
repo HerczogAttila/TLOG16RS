@@ -80,6 +80,7 @@ public class CreateDatabase {
             Liquibase liquibase = new Liquibase("src/main/resources/migrations.xml", new FileSystemResourceAccessor(), database);
             liquibase.update("create");
             liquibase.update("addTimeLoggerName");
+            liquibase.update("addTimeLoggerLogin");
             c.close();
         } catch(ClassNotFoundException | SQLException | LiquibaseException e) {
             LOG.error("updateSchema: " + e.getMessage(), e);

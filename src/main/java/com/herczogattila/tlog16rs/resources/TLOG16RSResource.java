@@ -13,6 +13,7 @@ import com.herczogattila.tlog16rs.core.FinishingTaskRB;
 import com.herczogattila.tlog16rs.core.ModifyTaskRB;
 import com.herczogattila.tlog16rs.core.ModifyWorkDayRB;
 import com.herczogattila.tlog16rs.core.StartTaskRB;
+import com.herczogattila.tlog16rs.core.UserRB;
 import com.herczogattila.tlog16rs.entities.Task;
 import static com.herczogattila.tlog16rs.entities.Task.stringToLocalTime;
 import com.herczogattila.tlog16rs.entities.TimeLogger;
@@ -21,6 +22,10 @@ import com.herczogattila.tlog16rs.core.WorkDayRB;
 import com.herczogattila.tlog16rs.entities.WorkMonth;
 import com.herczogattila.tlog16rs.core.WorkMonthRB;
 import groovy.util.logging.Slf4j;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +37,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.impl.crypto.MacProvider;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import javax.ws.rs.HeaderParam;
 
 /**
  *
@@ -143,8 +155,8 @@ public class TLOG16RSResource {
     @Path("/workmonths")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<WorkMonth> getWorkmonths() {
-        return timeLogger.getMonths();
+    public Response getWorkmonths(@HeaderParam("Authorization") String authorization) {
+        return Response.ok(timeLogger.getMonths()).build();
     }
     
     @Path("/workmonths")
@@ -352,5 +364,93 @@ public class TLOG16RSResource {
         ebeanServer.save(tl);
         timeLogger = ebeanServer.find(TimeLogger.class, 1);
     }
-}
+    
+    @Path("/registering")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response registering(UserRB user) throws NoSuchAlgorithmException {
+        List<TimeLogger> users = ebeanServer.find(TimeLogger.class)
+                .where()
+                .eq("name", user.getName())
+                .findList();
+        
+        if(users.isEmpty()) {
+            TimeLogger newUser = new TimeLogger(user.getName());
+            
+            byte[] salt = new byte[16];
+            new SecureRandom().nextBytes(salt);
+            newUser.setSalt(String.format("%064x", new java.math.BigInteger(1, salt)));
+            
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            String password = user.getPassword() + newUser.getSalt();
+            
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            
+            newUser.setPassword(String.format("%064x", new java.math.BigInteger(1, hash)));
+            
+            ebeanServer.save(newUser);
+            return Response.ok().build();
+        } else {
+            return Response.ok().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @Path("/authenticate")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response authenticate(UserRB user) throws NoSuchAlgorithmException, InvalidKeyException {
+        List<TimeLogger> users = ebeanServer.find(TimeLogger.class)
+                .where()
+                .eq("name", user.getName())
+                .findList();
+        
+        if(!users.isEmpty()) {
+            TimeLogger tl = users.get(0);
+            
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            String password = user.getPassword() + tl.getSalt();
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            String hashString = String.format("%064x", new java.math.BigInteger(1, hash));
 
+            if(hashString.equals(tl.getPassword())) {
+                Key key = MacProvider.generateKey();
+                
+//                String secret = "secret";
+//                
+//                String header = "{\"alg\":\"HS256\"}";
+//                String encHeader = Base64.getEncoder().encodeToString(header.getBytes());
+//                System.out.println("header: " + encHeader + ".");
+                
+                String payload = "{\"sub\":\"" + user.getName() + "\"}";
+//                String encPayload = Base64.getEncoder().encodeToString(payload.getBytes());
+//                System.out.println("payload: " + encPayload + ".");
+//                
+//                String signed = HMACSHA256(encHeader + "." + encPayload, secret);
+//                System.out.println("signed: " + signed + ".");
+                
+                String jwt = Jwts.builder()
+                    .setPayload(payload)
+                    .signWith(SignatureAlgorithm.HS256, key)
+                    .compact();
+                
+                return Response.ok(jwt).build();
+            }
+        }
+        
+        return Response.status(401).build();
+    }
+    
+    /*private String HMACSHA256(String message, String secret) {
+        try {
+
+            Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secret_key = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
+            sha256_HMAC.init(secret_key);
+
+            return Base64.getEncoder().encodeToString(sha256_HMAC.doFinal(message.getBytes()));
+        } catch (Exception e) {
+            System.out.println("Error");
+           }
+        return "";
+    }*/
+}

@@ -28,6 +28,8 @@ public class TimeLogger implements Serializable {
     @GeneratedValue
     private int id;
     private String name;
+    private String password;
+    private String salt;
         
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<WorkMonth> months;
