@@ -30,9 +30,9 @@ public class Task {
     @GeneratedValue
     private Integer id;
     private String taskId;
-    private transient LocalTime startTime;
-    private transient LocalTime endTime;
     private String comment;
+    private String startingTime;
+    private String endingTime;
     
     private long sumMinPerDay;
 
@@ -85,20 +85,17 @@ public class Task {
     public Task(String taskId, String comment, String startTime, String endTime) {
         this.taskId = taskId;
         this.comment = comment;
+        startingTime = startTime;
+        endingTime = endTime;
         
         if(this.taskId.isEmpty())
             throw new NoTaskIdException();
                 
         if(!isValidTaskId())
             throw new InvalidTaskIdException();
-        
-        try {
-            this.startTime = stringToLocalTime(startTime);
-            this.endTime = stringToLocalTime(endTime);
-        } catch(RuntimeException e) { LOG.warn(e.getMessage(), e); }
 
-        if(this.startTime != null && this.endTime != null) {
-            if(this.startTime.compareTo(this.endTime) > 0) {
+        if(getStartTime() != null && getEndTime() != null) {
+            if(getStartTime().compareTo(getEndTime()) > 0) {
                 throw new NotExpectedTimeOrderException();
             }
         } else {
@@ -114,6 +111,9 @@ public class Task {
      * @return 
      */
     public static LocalTime stringToLocalTime(String time) {
+        if(time == null)
+            return null;
+        
         String[] parts = time.split(":");
         int h = Integer.parseInt(parts[0]);
         int m = Integer.parseInt(parts[1]);
@@ -166,10 +166,10 @@ public class Task {
      * @return long
      */
     public long getMinPerTask() {
-        if(startTime == null || endTime == null)
+        if(getStartTime() == null || getEndTime() == null)
             return 0;
         
-        return MINUTES.between(startTime, endTime);
+        return MINUTES.between(getStartTime(), getEndTime());
     }
     
     /**
@@ -177,7 +177,7 @@ public class Task {
      */
     @Override
     public String toString() {
-        return taskId + "\t" + startTime + "\t" + endTime + "\t" + comment;
+        return taskId + "\t" + startingTime + "\t" + endingTime + "\t" + comment;
     }
 
     /**
@@ -186,15 +186,7 @@ public class Task {
      * @param min 
      */
     public void setStartTime(int hour, int min) {
-        startTime = LocalTime.of(hour, min);
-    }
-
-    /**
-     * Set the start time.
-     * @param startTime 
-     */
-    public void setStartTime(String startTime) {
-        this.startTime = stringToLocalTime(startTime);
+        startingTime = hour + ":" + min;
     }
 
     /**
@@ -204,10 +196,10 @@ public class Task {
      */
     public void setEndTime(int hour, int min) {
         LocalTime newEndTime = LocalTime.of(hour, min);
-        if(startTime != null && this.startTime.compareTo(newEndTime) > 0)
+        if(getStartTime() != null && this.getEndTime().compareTo(newEndTime) > 0)
             throw new NotExpectedTimeOrderException();
         
-        this.endTime = newEndTime;
+        endingTime = hour + ":" + min;
     }
 
     /**
@@ -215,13 +207,31 @@ public class Task {
      * @param endTime 
      */
     public void setEndTime(String endTime) {
+        if(endTime == null)
+            return;
+        
         LocalTime newEndTime = stringToLocalTime(endTime);
         
-        if(startTime != null && this.startTime.compareTo(newEndTime) > 0)
+        if(getStartTime() != null && this.getStartTime().compareTo(newEndTime) > 0)
             throw new NotExpectedTimeOrderException();
         
-        this.endTime = newEndTime;
+        endingTime = endTime;
     }
+    
+    public void setEndingTime(String endTime) {
+        if(endTime == null)
+            return;
+        
+        LocalTime newEndTime = stringToLocalTime(endTime);
+        
+        if(getStartTime() != null && this.getStartTime().compareTo(newEndTime) > 0)
+            throw new NotExpectedTimeOrderException();
+        
+        endingTime = endTime;
+    }
+    
+    public LocalTime getStartTime() { return stringToLocalTime(startingTime); }
+    public LocalTime getEndTime() { return stringToLocalTime(endingTime); }
 
     /**
      * @return String The task id.
@@ -235,12 +245,12 @@ public class Task {
     }
     
     public boolean isSeparatedTime(Task task) {
-        if (endTime.isAfter(task.startTime) && startTime.isBefore(task.startTime))
+        if (getEndTime().isAfter(task.getStartTime()) && getStartTime().isBefore(task.getStartTime()))
             return true;
         
-        if (endTime.isAfter(task.endTime) && startTime.isBefore(task.endTime))
+        if (getEndTime().isAfter(task.getEndTime()) && getStartTime().isBefore(task.getEndTime()))
             return true;
         
-        return startTime.equals(task.startTime) && endTime.equals(task.endTime);
+        return getStartTime().equals(task.getStartTime()) && getEndTime().equals(task.getEndTime());
     }
 }

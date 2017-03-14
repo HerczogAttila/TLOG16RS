@@ -5,9 +5,7 @@
  */
 package com.herczogattila.tlog16rs.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.herczogattila.tlog16rs.core.exceptions.NotNewMonthException;
-import java.io.Serializable;
 import java.util.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -23,7 +21,7 @@ import javax.persistence.OneToMany;
 @Entity
 @lombok.Getter
 @lombok.Setter
-public class TimeLogger implements Serializable {
+public class TimeLogger {
     @Id
     @GeneratedValue
     private int id;
@@ -51,5 +49,15 @@ public class TimeLogger implements Serializable {
             throw new NotNewMonthException();
         
         months.add(month);
+    }
+    
+    public WorkMonth findWorkMonth(int year, int month) {
+        for(WorkMonth wm : months) {
+            if(wm.getYear() == year && wm.getMonth() == month) {                
+                return wm;
+            }
+        }
+        
+        return null;
     }
 }

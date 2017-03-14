@@ -10,7 +10,6 @@ import com.herczogattila.tlog16rs.core.exceptions.FutureWorkException;
 import com.herczogattila.tlog16rs.core.exceptions.NegativeMinutesOfWorkException;
 import com.herczogattila.tlog16rs.core.exceptions.NotMultipleQuarterHourException;
 import com.herczogattila.tlog16rs.core.exceptions.NotSeparatedTimesException;
-import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -23,6 +22,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 /**
  *
@@ -31,7 +31,7 @@ import javax.persistence.OneToMany;
 @Entity
 @lombok.Getter
 @lombok.Setter
-public class WorkDay implements Serializable {
+public class WorkDay {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @JsonIgnore
@@ -40,7 +40,10 @@ public class WorkDay implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Task> tasks;
     private long requiredMinPerDay;
+    @Transient
+    @JsonIgnore
     private transient LocalDate actualDay;
+    private String date;
     
     private long extraMinPerDay;
     private long sumMinPerDay;
@@ -80,6 +83,7 @@ public class WorkDay implements Serializable {
         tasks = new ArrayList();
         this.requiredMinPerDay = requiredMinPerDay;
         this.actualDay = stringToLocalDate(actualDay);
+        date = actualDay;
         
         if(this.actualDay.compareTo(LocalDate.now()) > 0)
             throw new FutureWorkException();
@@ -189,10 +193,21 @@ public class WorkDay implements Serializable {
             throw new FutureWorkException();
         
         this.actualDay = actualDay;
+        date = actualDay.toString();
     }
     
     public void Refresh() {
         extraMinPerDay = getExtraMinPerDay();
         sumMinPerDay = getSumPerDay();
+    }
+    
+    @JsonIgnore
+    public int getDayOfMonth() {
+        String[] fields = date.split(". ");
+        if(fields.length >= 3) {
+            return Integer.parseInt(fields[2]);
+        }
+        
+        return 0;
     }
 }

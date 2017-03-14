@@ -3,6 +3,8 @@ create table task (
   work_day_id                   integer not null,
   task_id                       varchar(255),
   comment                       varchar(255),
+  starting_time                 varchar(255),
+  ending_time                   varchar(255),
   sum_min_per_day               bigint,
   constraint pk_task primary key (id)
 );
@@ -10,6 +12,8 @@ create table task (
 create table time_logger (
   id                            integer auto_increment not null,
   name                          varchar(255),
+  password                      varchar(255),
+  salt                          varchar(255),
   constraint pk_time_logger primary key (id)
 );
 
@@ -17,6 +21,7 @@ create table work_day (
   id                            integer auto_increment not null,
   work_month_id                 integer not null,
   required_min_per_day          bigint,
+  date                          varchar(255),
   extra_min_per_day             bigint,
   sum_min_per_day               bigint,
   constraint pk_work_day primary key (id)
