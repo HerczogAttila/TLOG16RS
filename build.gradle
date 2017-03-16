@@ -94,7 +94,7 @@ task createDockerfile(type: Dockerfile) {
 dockerBuildImage {
 	dependsOn createDockerfile
 	inputDir = createDockerfile.destFile.parentFile
-	tag = "trainingproject/${project.name.toLowerCase()}"
+	tag = "polc/${project.name.toLowerCase()}"
 }
 
 run {
