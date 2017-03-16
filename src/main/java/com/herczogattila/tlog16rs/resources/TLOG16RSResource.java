@@ -22,8 +22,16 @@ import com.herczogattila.tlog16rs.entities.WorkDay;
 import com.herczogattila.tlog16rs.core.WorkDayRB;
 import com.herczogattila.tlog16rs.entities.WorkMonth;
 import com.herczogattila.tlog16rs.core.WorkMonthRB;
+import com.herczogattila.tlog16rs.core.exceptions.FutureWorkException;
 import com.herczogattila.tlog16rs.core.exceptions.InvalidJWTTokenException;
+import com.herczogattila.tlog16rs.core.exceptions.InvalidTaskIdException;
 import com.herczogattila.tlog16rs.core.exceptions.MissingUserException;
+import com.herczogattila.tlog16rs.core.exceptions.NegativeMinutesOfWorkException;
+import com.herczogattila.tlog16rs.core.exceptions.NotExpectedTimeOrderException;
+import com.herczogattila.tlog16rs.core.exceptions.NotMultipleQuarterHourException;
+import com.herczogattila.tlog16rs.core.exceptions.NotNewMonthException;
+import com.herczogattila.tlog16rs.core.exceptions.NotSeparatedTimesException;
+import com.herczogattila.tlog16rs.core.exceptions.WeekendNotEnabledException;
 import groovy.util.logging.Slf4j;
 import io.jsonwebtoken.Claims;
 import java.nio.charset.StandardCharsets;
@@ -89,7 +97,10 @@ public class TLOG16RSResource {
             return Response.ok(workMonth).build();
         } catch(InvalidJWTTokenException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        } catch(NotNewMonthException e) {
+            LOG.warn(e.getMessage());
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
     }
     
@@ -126,6 +137,9 @@ public class TLOG16RSResource {
         } catch(InvalidJWTTokenException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
+        } catch(WeekendNotEnabledException | FutureWorkException | NegativeMinutesOfWorkException e) {
+            LOG.warn(e.getMessage());
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
     }
     
@@ -221,10 +235,13 @@ public class TLOG16RSResource {
                 ebeanServer.save(user);
             }
 
-            return Response.ok().build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         } catch(InvalidJWTTokenException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
+        } catch(InvalidTaskIdException | NotSeparatedTimesException | NotExpectedTimeOrderException e) {
+            LOG.warn(e.getMessage());
+            return Response.status(Response.Status.NOT_MODIFIED).build();
         }
     }
     
@@ -251,10 +268,13 @@ public class TLOG16RSResource {
             
             ebeanServer.save(user);
 
-            return Response.ok().build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         } catch(InvalidJWTTokenException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        } catch(NotMultipleQuarterHourException | NotSeparatedTimesException | NotExpectedTimeOrderException e) {
+            LOG.warn(e.getMessage());
+            return Response.status(Response.Status.NOT_MODIFIED).build();
         }
     }
     
@@ -279,7 +299,7 @@ public class TLOG16RSResource {
                 ebeanServer.save(user);
             }
 
-            return Response.ok().build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         } catch(InvalidJWTTokenException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
@@ -308,7 +328,7 @@ public class TLOG16RSResource {
                 ebeanServer.save(user);
             }
 
-            return Response.ok().build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         } catch(InvalidJWTTokenException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
@@ -327,7 +347,7 @@ public class TLOG16RSResource {
             user.getMonths().clear();
             ebeanServer.save(user);
             
-            return Response.ok().build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         } catch(InvalidJWTTokenException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
