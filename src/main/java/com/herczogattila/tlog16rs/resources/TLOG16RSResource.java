@@ -285,11 +285,15 @@ public class TLOG16RSResource {
         try {
             TimeLogger user = getUserIfNotInvalidToken(authorization);
             Task task = findOrCreateTask(user, modifyTask.getYear(), modifyTask.getMonth(), modifyTask.getDay(), modifyTask.getTaskId(), modifyTask.getStartTime());
-            if(task != null) {            
+            if(task != null) {
                 task.setTaskId(modifyTask.getNewTaskId());
                 task.setComment(modifyTask.getNewComment());
                 task.setStartingTime(modifyTask.getNewStartTime());
                 task.setEndTime(modifyTask.getNewEndTime());
+                
+                if(!task.isMultipleQuarterHour()) {
+                    throw new NotMultipleQuarterHourException();
+                }
 
                 WorkDay wd = findOrCreateWorkDay(user, modifyTask.getYear(), modifyTask.getMonth(), modifyTask.getDay());
                 if(wd != null) {
@@ -302,7 +306,10 @@ public class TLOG16RSResource {
             return Response.status(Response.Status.NO_CONTENT).build();
         } catch(InvalidJWTTokenException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        } catch(NotMultipleQuarterHourException e) {
+            LOG.warn(e.getMessage());
+            return Response.status(Response.Status.NOT_MODIFIED).build();
         }
     }
     
