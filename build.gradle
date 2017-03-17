@@ -85,6 +85,7 @@ task createDockerfile(type: Dockerfile) {
 	runCommand "wget --no-check-certificate https://github.com/jwilder/dockerize/releases/download/v0.2.0/dockerize-linux-amd64-v0.2.0.tar.gz"
 	runCommand "tar -C /usr/local/bin -xzvf dockerize-linux-amd64-v0.2.0.tar.gz"
 	
+        addFile "dist/migrations.xml", "/"
 	addFile "distributions/${project.distTar.archiveName}", "/tmp"
 	runCommand "mv /tmp/${project.applicationName}-${project.version} /${project.applicationName}"
 	workingDir  "${appFolder}"

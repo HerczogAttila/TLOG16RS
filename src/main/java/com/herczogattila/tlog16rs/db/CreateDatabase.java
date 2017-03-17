@@ -77,7 +77,7 @@ public class CreateDatabase {
             Class.forName(config.getDriver());
             c = DriverManager.getConnection(config.getUrl(), config.getName(), config.getPassword());
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(c));
-            Liquibase liquibase = new Liquibase("src/main/resources/migrations.xml", new FileSystemResourceAccessor(), database);
+            Liquibase liquibase = new Liquibase("migrations.xml", new FileSystemResourceAccessor(), database);
             liquibase.update("create");
             liquibase.update("addTimeLoggerName");
             liquibase.update("addTimeLoggerLogin");
