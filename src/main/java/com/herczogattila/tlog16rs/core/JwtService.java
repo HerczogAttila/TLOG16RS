@@ -9,6 +9,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
 import java.security.Key;
 import java.util.Date;
 import javax.crypto.spec.SecretKeySpec;
@@ -36,7 +37,7 @@ public class JwtService {
         return builder.compact();
     }
     
-    public static Claims parseJWT(String jwt) {
+    public static Claims parseJWT(String jwt) throws SignatureException {
         Claims claims = Jwts.parser()         
            .setSigningKey(DatatypeConverter.parseBase64Binary(secret))
            .parseClaimsJws(jwt).getBody();

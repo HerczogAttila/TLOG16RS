@@ -34,6 +34,7 @@ import com.herczogattila.tlog16rs.core.exceptions.NotSeparatedTimesException;
 import com.herczogattila.tlog16rs.core.exceptions.WeekendNotEnabledException;
 import groovy.util.logging.Slf4j;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.SignatureException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -76,7 +77,7 @@ public class TLOG16RSResource {
         try {
             TimeLogger user = getUserIfNotInvalidToken(authorization);
             return Response.ok(user.getMonths()).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
         }
@@ -95,7 +96,7 @@ public class TLOG16RSResource {
             ebeanServer.save(user);
 
             return Response.ok(workMonth).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.UNAUTHORIZED).build();
         } catch(NotNewMonthException e) {
@@ -113,9 +114,9 @@ public class TLOG16RSResource {
         try {
             TimeLogger user = getUserIfNotInvalidToken(authorization);
             return Response.ok(findOrCreateWorkMonth(user, year, month).getDays()).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
     
@@ -134,7 +135,7 @@ public class TLOG16RSResource {
             ebeanServer.save(user);
             
             return Response.ok(workDay).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
         } catch(WeekendNotEnabledException | FutureWorkException | NegativeMinutesOfWorkException e) {
@@ -158,7 +159,7 @@ public class TLOG16RSResource {
             ebeanServer.save(user);
             
             return Response.ok(workDay).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
         }
@@ -174,7 +175,7 @@ public class TLOG16RSResource {
             TimeLogger user = getUserIfNotInvalidToken(authorization);
             WorkDay workDay = findOrCreateWorkDay(user, year, month, day);
             return Response.ok(workDay).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
         }
@@ -195,7 +196,7 @@ public class TLOG16RSResource {
             }
             
             return Response.ok(workDay).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
         }
@@ -204,7 +205,8 @@ public class TLOG16RSResource {
     @Path("/workmonths/{year}/{month}/{day}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkDayTasks(@HeaderParam("Authorization") String authorization, @PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
+    public Response getWorkDayTasks(@HeaderParam("Authorization") String authorization,
+            @PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
         try {
             TimeLogger user = getUserIfNotInvalidToken(authorization);
             WorkDay wd = findOrCreateWorkDay(user, year, month, day);
@@ -213,7 +215,7 @@ public class TLOG16RSResource {
                 tasks = wd.getTasks();
 
             return Response.ok(tasks).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
         }
@@ -236,7 +238,7 @@ public class TLOG16RSResource {
             }
 
             return Response.status(Response.Status.NO_CONTENT).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
         } catch(InvalidTaskIdException | NotSeparatedTimesException | NotExpectedTimeOrderException e) {
@@ -269,7 +271,7 @@ public class TLOG16RSResource {
             ebeanServer.save(user);
 
             return Response.status(Response.Status.NO_CONTENT).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.UNAUTHORIZED).build();
         } catch(NotMultipleQuarterHourException | NotSeparatedTimesException | NotExpectedTimeOrderException e) {
@@ -304,7 +306,7 @@ public class TLOG16RSResource {
             }
 
             return Response.status(Response.Status.NO_CONTENT).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.UNAUTHORIZED).build();
         } catch(NotMultipleQuarterHourException e) {
@@ -336,7 +338,7 @@ public class TLOG16RSResource {
             }
 
             return Response.status(Response.Status.NO_CONTENT).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
         }
@@ -355,7 +357,7 @@ public class TLOG16RSResource {
             ebeanServer.save(user);
             
             return Response.status(Response.Status.NO_CONTENT).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
         }
@@ -414,7 +416,7 @@ public class TLOG16RSResource {
         try {
             TimeLogger user = getUserIfNotInvalidToken(authorization);
             return Response.ok(createJWT(user.getName())).build();
-        } catch(InvalidJWTTokenException e) {
+        } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(401).build();
         }
