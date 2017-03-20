@@ -31,7 +31,7 @@ import javax.persistence.Transient;
 @Entity
 @lombok.Getter
 @lombok.Setter
-public class WorkDay {
+public final class WorkDay {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @JsonIgnore

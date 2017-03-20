@@ -23,11 +23,12 @@ import javax.persistence.Id;
 @Entity
 @lombok.Getter
 @lombok.Setter
-public class Task {
+public final class Task {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(Task.class);
     
     @Id
     @GeneratedValue
+    @JsonIgnore
     private Integer id;
     private String taskId;
     private String comment;
@@ -38,13 +39,6 @@ public class Task {
 
     public Task() { this("1234"); }
     
-    /**
-     * @param taskId 
-     * @exception NoTaskIdException
-     * @exception InvalidTaskIdException
-     * @exception NotExpectedTimeOrderException
-     * @exception EmptyTimeFieldException
-     */
     public Task(String taskId) {
         this.taskId = taskId;
         comment = "";
@@ -56,32 +50,10 @@ public class Task {
             throw new InvalidTaskIdException();
     }
     
-    /**
-     * @param taskId
-     * @param comment
-     * @param startHour
-     * @param startMinute
-     * @param endHour
-     * @param endMinute 
-     * @exception NoTaskIdException
-     * @exception InvalidTaskIdException
-     * @exception NotExpectedTimeOrderException
-     * @exception EmptyTimeFieldException
-     */
     public Task(String taskId, String comment, int startHour, int startMinute, int endHour, int endMinute) {
         this(taskId, comment, startHour + ":" + startMinute, endHour + ":" + endMinute);
     }
     
-    /**
-     * @param taskId
-     * @param comment
-     * @param startTime
-     * @param endTime 
-     * @exception NoTaskIdException
-     * @exception InvalidTaskIdException
-     * @exception NotExpectedTimeOrderException
-     * @exception EmptyTimeFieldException
-     */
     public Task(String taskId, String comment, String startTime, String endTime) {
         this.taskId = taskId;
         this.comment = comment;
@@ -104,12 +76,7 @@ public class Task {
         
         sumMinPerDay = getMinPerTask();
     }
-    
-    /**
-     * Convert time string to LocalTime.
-     * @param time
-     * @return 
-     */
+
     public static LocalTime stringToLocalTime(String time) {
         if(time == null)
             return null;
@@ -120,19 +87,10 @@ public class Task {
         return LocalTime.of(h, m);
     }
     
-    /**
-     * @return boolean
-     */
-    @JsonIgnore
     public boolean isValidTaskId() {
         return isValidRedmineTaskId() || isValidLTTaskId();
     }
-    
-    /**
-     * @return boolean
-     * @exception NoTaskIdException
-     */
-    @JsonIgnore
+
     public boolean isValidRedmineTaskId() {
         if(taskId.isEmpty())
             throw new NoTaskIdException();
@@ -140,11 +98,6 @@ public class Task {
         return taskId.matches("^\\d{4}");
     }
     
-    /**
-     * @return boolean
-     * @exception NoTaskIdException
-     */
-    @JsonIgnore
     public boolean isValidLTTaskId() {
         if(taskId.isEmpty())
             throw new NoTaskIdException();
@@ -152,48 +105,27 @@ public class Task {
         return taskId.matches("^LT-\\d{4}");
     }
     
-    /**
-     * Time interval should be the multiple of the quarter hour.
-     * @return 
-     */
     @JsonIgnore
     public boolean isMultipleQuarterHour() {
         return getMinPerTask() % 15 == 0;
     }
-    
-    /**
-     * Calculate the duration of a task. If start or end time is null, then return zero.
-     * @return long
-     */
+
     public long getMinPerTask() {
         if(getStartTime() == null || getEndTime() == null)
             return 0;
         
         return MINUTES.between(getStartTime(), getEndTime());
     }
-    
-    /**
-     * @return String
-     */
+
     @Override
     public String toString() {
         return taskId + "\t" + startingTime + "\t" + endingTime + "\t" + comment;
     }
 
-    /**
-     * Set the start time
-     * @param hour
-     * @param min 
-     */
     public void setStartTime(int hour, int min) {
         startingTime = hour + ":" + min;
     }
 
-    /**
-     * Set the end time.
-     * @param hour
-     * @param min 
-     */
     public void setEndTime(int hour, int min) {
         LocalTime newEndTime = LocalTime.of(hour, min);
         if(getStartTime() != null && this.getEndTime().compareTo(newEndTime) > 0)
@@ -202,23 +134,7 @@ public class Task {
         endingTime = hour + ":" + min;
     }
 
-    /**
-     * Set the end time.
-     * @param endTime 
-     */
     public void setEndTime(String endTime) {
-        if(endTime == null)
-            return;
-        
-        LocalTime newEndTime = stringToLocalTime(endTime);
-        
-        if(getStartTime() != null && this.getStartTime().compareTo(newEndTime) > 0)
-            throw new NotExpectedTimeOrderException();
-        
-        endingTime = endTime;
-    }
-    
-    public void setEndingTime(String endTime) {
         if(endTime == null)
             return;
         
@@ -233,10 +149,6 @@ public class Task {
     public LocalTime getStartTime() { return stringToLocalTime(startingTime); }
     public LocalTime getEndTime() { return stringToLocalTime(endingTime); }
 
-    /**
-     * @return String The task id.
-     * @exception NoTaskIdException 
-     */
     public String getTaskId() {
         if(this.taskId.isEmpty())
             throw new NoTaskIdException();
