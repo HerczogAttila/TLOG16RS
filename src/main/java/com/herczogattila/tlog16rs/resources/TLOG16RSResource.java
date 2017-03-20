@@ -421,6 +421,18 @@ public class TLOG16RSResource {
         }
     }
     
+    @Path("/isExistUser")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response isExistUserName(String userName) {
+        try {
+            getUser(userName);
+            return Response.status(Response.Status.NOT_MODIFIED).build();            
+        } catch (MissingUserException e) {
+            return Response.ok().build();
+        }
+    }
+    
     private WorkMonth findOrCreateWorkMonth(TimeLogger timeLogger, int year, int month) {
         WorkMonth wm = timeLogger.findWorkMonth(year, month);
         if(wm == null) {
