@@ -20,27 +20,29 @@ import javax.xml.bind.DatatypeConverter;
  * @author precognox
  */
 public class JwtService {
-    private static final String secret = "difneklsdifnkelsdnfklsdf";
+    private static final String secret = "FhrIoDY9m3NdYj47rJQH";
     private static final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
     private static final byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(secret);
     private static final Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
+    private static final long fiveMinutes = 300000;
     
     public static String createJWT(String name) {
-        long expMillis = System.currentTimeMillis() + 300000;
-        Date exp = new Date(expMillis);
+        long expirationMillis = System.currentTimeMillis() + fiveMinutes;
+        Date exp = new Date(expirationMillis);
         
         JwtBuilder builder = Jwts.builder()
-            .setSubject(name)
-            .setExpiration(exp)
-            .signWith(signatureAlgorithm, signingKey);
+                .setSubject(name)
+                .setExpiration(exp)
+                .signWith(signatureAlgorithm, signingKey);
 
         return builder.compact();
     }
     
     public static Claims parseJWT(String jwt) throws SignatureException {
-        Claims claims = Jwts.parser()         
-           .setSigningKey(DatatypeConverter.parseBase64Binary(secret))
-           .parseClaimsJws(jwt).getBody();
+        Claims claims = Jwts.parser()
+                .setSigningKey(apiKeySecretBytes)
+                .parseClaimsJws(jwt)
+                .getBody();
         
         return claims;
     }

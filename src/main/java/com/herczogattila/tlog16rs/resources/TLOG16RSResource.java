@@ -79,7 +79,7 @@ public class TLOG16RSResource {
             return Response.ok(user.getMonths()).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
     
@@ -137,7 +137,7 @@ public class TLOG16RSResource {
             return Response.ok(workDay).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         } catch(WeekendNotEnabledException | FutureWorkException | NegativeMinutesOfWorkException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.NO_CONTENT).build();
@@ -161,7 +161,7 @@ public class TLOG16RSResource {
             return Response.ok(workDay).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
     
@@ -177,7 +177,7 @@ public class TLOG16RSResource {
             return Response.ok(workDay).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
     
@@ -198,7 +198,7 @@ public class TLOG16RSResource {
             return Response.ok(workDay).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
     
@@ -217,7 +217,7 @@ public class TLOG16RSResource {
             return Response.ok(tasks).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
     
@@ -240,7 +240,7 @@ public class TLOG16RSResource {
             return Response.status(Response.Status.NO_CONTENT).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         } catch(InvalidTaskIdException | NotSeparatedTimesException | NotExpectedTimeOrderException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.NOT_MODIFIED).build();
@@ -340,7 +340,7 @@ public class TLOG16RSResource {
             return Response.status(Response.Status.NO_CONTENT).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
     
@@ -359,7 +359,7 @@ public class TLOG16RSResource {
             return Response.status(Response.Status.NO_CONTENT).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
     
@@ -369,11 +369,10 @@ public class TLOG16RSResource {
     public Response registering(UserRB user) {
         try {
             getUser(user.getName());
+            return Response.status(Response.Status.NOT_MODIFIED).build();
         } catch (MissingUserException e) {
             return registerUser(user);
         }
-        
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
     
     private Response registerUser(UserRB user) {
@@ -387,9 +386,8 @@ public class TLOG16RSResource {
             return Response.ok().build();
         } catch (NoSuchAlgorithmException e) {
             LOG.warn(e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-        
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
     
     @Path("/authenticate")
@@ -402,12 +400,13 @@ public class TLOG16RSResource {
             String hash = generatePasswordHash(user.getPassword(), dbUser.getSalt());
             if(hash.equals(dbUser.getPassword())) {
                 return Response.ok(createJWT(user.getName())).build();
+            } else {
+                return Response.status(Response.Status.UNAUTHORIZED).build();
             }
         } catch (NoSuchAlgorithmException e) {
             LOG.error(e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-        
-        return Response.status(401).build();
     }
     
     @Path("/refresh")
@@ -418,7 +417,7 @@ public class TLOG16RSResource {
             return Response.ok(createJWT(user.getName())).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
-            return Response.status(401).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
     

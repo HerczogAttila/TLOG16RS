@@ -43,18 +43,8 @@ public class CreateDatabase {
         setDataSourceConfig(config);
                         
         serverConfig = new ServerConfig();
-        serverConfig.setDdlGenerate(false);
-        serverConfig.setDdlRun(false);
-        serverConfig.setRegister(true);
-        serverConfig.setDefaultServer(true);
-        serverConfig.setDataSourceConfig(dataSourceConfig);
-        serverConfig.addClass(Task.class);
-        serverConfig.addClass(WorkDay.class);
-        serverConfig.addClass(WorkMonth.class);
-        serverConfig.addClass(TimeLogger.class);
-        
-        
         setServerConfig(config);
+        
         updateSchema(config);
         agentLoader();
         ebeanServer = EbeanServerFactory.create(serverConfig);
@@ -68,6 +58,16 @@ public class CreateDatabase {
     }
     
     private void setServerConfig(TLOG16RSConfiguration config) {
+        
+        serverConfig.setDdlGenerate(false);
+        serverConfig.setDdlRun(false);
+        serverConfig.setRegister(true);
+        serverConfig.setDefaultServer(true);
+        serverConfig.setDataSourceConfig(dataSourceConfig);
+        serverConfig.addClass(Task.class);
+        serverConfig.addClass(WorkDay.class);
+        serverConfig.addClass(WorkMonth.class);
+        serverConfig.addClass(TimeLogger.class);
         serverConfig.setName(config.getServerConfigName());
     }
 
