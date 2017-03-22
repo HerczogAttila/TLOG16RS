@@ -149,6 +149,7 @@ public final class WorkDay {
      * Decide if actual day is a weekday.
      * @return boolean
      */
+    @JsonIgnore
     public boolean isWeekDay() {
         return !(actualDay.getDayOfWeek() == DayOfWeek.SUNDAY ||
                 actualDay.getDayOfWeek() == DayOfWeek.SATURDAY);
@@ -158,6 +159,7 @@ public final class WorkDay {
      * Sum of the minPerTask values every day.
      * @return long
      */
+    @JsonIgnore
     public long getSumPerDay() {
         return tasks.stream().mapToLong(Task::getMinPerTask).sum();
     }

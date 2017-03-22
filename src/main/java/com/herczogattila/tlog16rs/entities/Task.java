@@ -87,10 +87,12 @@ public final class Task {
         return LocalTime.of(h, m);
     }
     
+    @JsonIgnore
     public boolean isValidTaskId() {
         return isValidRedmineTaskId() || isValidLTTaskId();
     }
 
+    @JsonIgnore
     public boolean isValidRedmineTaskId() {
         if(taskId.isEmpty())
             throw new NoTaskIdException();
@@ -98,6 +100,7 @@ public final class Task {
         return taskId.matches("^\\d{4}");
     }
     
+    @JsonIgnore
     public boolean isValidLTTaskId() {
         if(taskId.isEmpty())
             throw new NoTaskIdException();
@@ -109,7 +112,8 @@ public final class Task {
     public boolean isMultipleQuarterHour() {
         return getMinPerTask() % 15 == 0;
     }
-
+    
+    @JsonIgnore
     public long getMinPerTask() {
         if(getStartTime() == null || getEndTime() == null)
             return 0;
@@ -146,7 +150,9 @@ public final class Task {
         endingTime = endTime;
     }
     
+    @JsonIgnore
     public LocalTime getStartTime() { return stringToLocalTime(startingTime); }
+    @JsonIgnore
     public LocalTime getEndTime() { return stringToLocalTime(endingTime); }
 
     public String getTaskId() {
