@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.herczogattila.tlog16rs.core.exceptions.NotNewDateException;
 import com.herczogattila.tlog16rs.core.exceptions.NotTheSameMonthException;
 import com.herczogattila.tlog16rs.core.exceptions.WeekendNotEnabledException;
-import java.io.Serializable;
 import java.time.YearMonth;
 import java.util.*;
 import javax.persistence.CascadeType;
@@ -28,7 +27,7 @@ import javax.persistence.Transient;
 @Entity
 @lombok.Getter
 @lombok.Setter
-public class WorkMonth {    
+public final class WorkMonth {    
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @JsonIgnore
@@ -83,7 +82,7 @@ public class WorkMonth {
      * @return boolean
      */
     public boolean isNewDate(WorkDay day) {
-        return days.stream().noneMatch(d -> d.getActualDay().getDayOfMonth() == day.getActualDay().getDayOfMonth());
+        return days.stream().noneMatch(d -> d.getDayOfMonth() == day.getDayOfMonth());
     }
 
     /**

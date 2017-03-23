@@ -29,6 +29,7 @@ import com.herczogattila.tlog16rs.core.exceptions.MissingUserException;
 import com.herczogattila.tlog16rs.core.exceptions.NegativeMinutesOfWorkException;
 import com.herczogattila.tlog16rs.core.exceptions.NotExpectedTimeOrderException;
 import com.herczogattila.tlog16rs.core.exceptions.NotMultipleQuarterHourException;
+import com.herczogattila.tlog16rs.core.exceptions.NotNewDateException;
 import com.herczogattila.tlog16rs.core.exceptions.NotNewMonthException;
 import com.herczogattila.tlog16rs.core.exceptions.NotSeparatedTimesException;
 import com.herczogattila.tlog16rs.core.exceptions.WeekendNotEnabledException;
@@ -75,7 +76,7 @@ public class TLOG16RSResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkmonths(@HeaderParam("Authorization") String authorization) {
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             return Response.ok(user.getMonths()).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
@@ -89,7 +90,7 @@ public class TLOG16RSResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response addNewMonth(@HeaderParam("Authorization") String authorization, WorkMonthRB month) {
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             WorkMonth workMonth = new WorkMonth(month.getYear(), month.getMonth());
             user.addMonth(workMonth);
             
@@ -112,7 +113,7 @@ public class TLOG16RSResource {
             @PathParam(value = "year") int year, @PathParam(value = "month") int month) {
         
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             return Response.ok(findOrCreateWorkMonth(user, year, month).getDays()).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
@@ -126,9 +127,8 @@ public class TLOG16RSResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response addNewDay(@HeaderParam("Authorization") String authorization, WorkDayRB day) {
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             WorkMonth month = findOrCreateWorkMonth(user, day.getYear(), day.getMonth());
-
             WorkDay workDay = new WorkDay(day.getRequiredHours(), day.getYear(), day.getMonth(), day.getDay());
             month.addWorkDay(workDay);
             
@@ -138,9 +138,9 @@ public class TLOG16RSResource {
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch(WeekendNotEnabledException | FutureWorkException | NegativeMinutesOfWorkException e) {
+        } catch(WeekendNotEnabledException | FutureWorkException | NegativeMinutesOfWorkException | NotNewDateException e) {
             LOG.warn(e.getMessage());
-            return Response.status(Response.Status.NO_CONTENT).build();
+            return Response.status(Response.Status.NOT_MODIFIED).build();
         }
     }
     
@@ -150,7 +150,7 @@ public class TLOG16RSResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response addNewWeekendDay(@HeaderParam("Authorization") String authorization, WorkDayRB day) {
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             WorkMonth month = findOrCreateWorkMonth(user, day.getYear(), day.getMonth());
 
             WorkDay workDay = new WorkDay(day.getRequiredHours(), day.getYear(), day.getMonth(), day.getDay());
@@ -162,6 +162,9 @@ public class TLOG16RSResource {
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.UNAUTHORIZED).build();
+        } catch(WeekendNotEnabledException | FutureWorkException | NegativeMinutesOfWorkException e) {
+            LOG.warn(e.getMessage());
+            return Response.status(Response.Status.NOT_MODIFIED).build();
         }
     }
     
@@ -172,7 +175,7 @@ public class TLOG16RSResource {
             @PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
 
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             WorkDay workDay = findOrCreateWorkDay(user, year, month, day);
             return Response.ok(workDay).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
@@ -187,7 +190,7 @@ public class TLOG16RSResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response modifyWorkDay(@HeaderParam("Authorization") String authorization, ModifyWorkDayRB modifyWorkDay) {
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             WorkDay workDay = findOrCreateWorkDay(user, modifyWorkDay.getYear(), modifyWorkDay.getMonth(), modifyWorkDay.getDay());
             if (workDay != null) {
                 workDay.setRequiredMinPerDay(modifyWorkDay.getRequiredMinutes());
@@ -208,7 +211,7 @@ public class TLOG16RSResource {
     public Response getWorkDayTasks(@HeaderParam("Authorization") String authorization,
             @PathParam(value = "year") int year, @PathParam(value = "month") int month, @PathParam(value = "day") int day) {
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             WorkDay wd = findOrCreateWorkDay(user, year, month, day);
             List<Task> tasks = new ArrayList<>();
             if (wd != null)
@@ -226,7 +229,7 @@ public class TLOG16RSResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response startTask(@HeaderParam("Authorization") String authorization, StartTaskRB startTask) {
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             WorkDay day = findOrCreateWorkDay(user, startTask.getYear(), startTask.getMonth(), startTask.getDay());
             if(day != null) {
                 Task task = new Task(startTask.getTaskId());
@@ -252,7 +255,7 @@ public class TLOG16RSResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response finishTask(@HeaderParam("Authorization") String authorization, FinishingTaskRB finishTask) {        
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             Task task = findTask(user, finishTask.getYear(), finishTask.getMonth(), finishTask.getDay(), finishTask.getTaskId(), finishTask.getStartTime());
             if(task == null) {
                 WorkDay wd = findOrCreateWorkDay(user, finishTask.getYear(), finishTask.getMonth(), finishTask.getDay());
@@ -285,7 +288,7 @@ public class TLOG16RSResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response modifyTask(@HeaderParam("Authorization") String authorization, ModifyTaskRB modifyTask) {
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             Task task = findOrCreateTask(user, modifyTask.getYear(), modifyTask.getMonth(), modifyTask.getDay(), modifyTask.getTaskId(), modifyTask.getStartTime());
             if(task != null) {
                 task.setTaskId(modifyTask.getNewTaskId());
@@ -320,7 +323,7 @@ public class TLOG16RSResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteTask(@HeaderParam("Authorization") String authorization, DeleteTaskRB deleteTask) {        
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             
             WorkDay day = findOrCreateWorkDay(user, deleteTask.getYear(), deleteTask.getMonth(), deleteTask.getDay());
             if(day != null) {            
@@ -348,7 +351,7 @@ public class TLOG16RSResource {
     @PUT
     public Response deleteAllWorkmonths(@HeaderParam("Authorization") String authorization) {        
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             
             for(WorkMonth wm: user.getMonths()) {
                 ebeanServer.delete(wm);
@@ -413,7 +416,7 @@ public class TLOG16RSResource {
     @POST
     public Response refresh(@HeaderParam("Authorization") String authorization) {
         try {
-            TimeLogger user = getUserIfNotInvalidToken(authorization);
+            TimeLogger user = getUserIfValidToken(authorization);
             return Response.ok(createJWT(user.getName())).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
@@ -501,7 +504,7 @@ public class TLOG16RSResource {
         return null;
     }
     
-    private TimeLogger getUserIfNotInvalidToken(String jwtToken) {
+    private TimeLogger getUserIfValidToken(String jwtToken) {
         Claims claim = parseJWT(jwtToken);
         if(DateTime.now().isAfter(claim.getExpiration().getTime()))
             throw new InvalidJWTTokenException();
