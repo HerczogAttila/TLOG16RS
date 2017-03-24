@@ -171,4 +171,8 @@ public final class Task {
         
         return getStartTime().equals(task.getStartTime()) && getEndTime().equals(task.getEndTime());
     }
+    
+    public void Refresh() {
+        this.sumMinPerDay = getMinPerTask();
+    }
 }

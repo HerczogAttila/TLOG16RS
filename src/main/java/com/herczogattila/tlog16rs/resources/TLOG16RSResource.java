@@ -239,6 +239,7 @@ public class TLOG16RSResource {
                 task.setStartingTime(startTask.getStartTime());
                 task.setComment(startTask.getComment());
                 day.addTask(task);
+                day.Refresh();
 
                 ebeanServer.save(user);
             }
@@ -264,10 +265,12 @@ public class TLOG16RSResource {
                 WorkDay wd = findOrCreateWorkDay(user, finishTask.getYear(), finishTask.getMonth(), finishTask.getDay());
                 if(wd != null) {
                     task = new Task(finishTask.getTaskId(), "", finishTask.getStartTime(), finishTask.getEndTime());
+                    task.Refresh();
                     wd.addTask(task);
                 }
             } else {
                 task.setEndTime(finishTask.getEndTime());
+                task.Refresh();
                 WorkDay wd = findOrCreateWorkDay(user, finishTask.getYear(), finishTask.getMonth(), finishTask.getDay());
                 if(wd != null) {
                     wd.Refresh();
@@ -298,6 +301,7 @@ public class TLOG16RSResource {
                 task.setComment(modifyTask.getNewComment());
                 task.setStartingTime(modifyTask.getNewStartTime());
                 task.setEndTime(modifyTask.getNewEndTime());
+                task.Refresh();
                 
                 if(!task.isMultipleQuarterHour()) {
                     throw new NotMultipleQuarterHourException();
