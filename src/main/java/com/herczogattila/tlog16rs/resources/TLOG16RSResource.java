@@ -319,7 +319,7 @@ public class TLOG16RSResource {
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch(NotMultipleQuarterHourException e) {
+        } catch(NotMultipleQuarterHourException | NotExpectedTimeOrderException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.NOT_MODIFIED).build();
         }
