@@ -77,8 +77,13 @@ public final class WorkDay {
     }
 
     public boolean isSeparatedTime(Task task) {
-        if(tasks.stream().anyMatch(t -> t.getEndTime() == null) ||
-                tasks.stream().anyMatch(t -> t.getStartTime().compareTo(task.getStartTime()) == 0))
+        if(tasks.stream().anyMatch(t -> t.getEndTime() == null ||
+                t.getStartTime().compareTo(task.getStartTime()) == 0 ||
+                (task.getEndTime() != null &&
+                t.getStartTime().isAfter(task.getStartTime()) &&
+                t.getEndTime().isBefore(task.getEndTime()))
+                )
+            )
             return false;
         
         if(task.getEndTime() == null) {
