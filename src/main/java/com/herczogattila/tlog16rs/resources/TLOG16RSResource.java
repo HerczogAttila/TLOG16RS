@@ -27,6 +27,7 @@ import com.herczogattila.tlog16rs.core.exceptions.InvalidJWTTokenException;
 import com.herczogattila.tlog16rs.core.exceptions.InvalidTaskIdException;
 import com.herczogattila.tlog16rs.core.exceptions.MissingUserException;
 import com.herczogattila.tlog16rs.core.exceptions.NegativeMinutesOfWorkException;
+import com.herczogattila.tlog16rs.core.exceptions.NoTaskIdException;
 import com.herczogattila.tlog16rs.core.exceptions.NotExpectedTimeOrderException;
 import com.herczogattila.tlog16rs.core.exceptions.NotMultipleQuarterHourException;
 import com.herczogattila.tlog16rs.core.exceptions.NotNewDateException;
@@ -248,7 +249,8 @@ public class TLOG16RSResource {
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch(InvalidTaskIdException | NotSeparatedTimesException | NotExpectedTimeOrderException e) {
+        } catch(InvalidTaskIdException | NotSeparatedTimesException | NotExpectedTimeOrderException |
+                NoTaskIdException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.NOT_MODIFIED).build();
         }
@@ -273,11 +275,11 @@ public class TLOG16RSResource {
                 task.Refresh();
                 WorkDay wd = findOrCreateWorkDay(user, finishTask.getYear(), finishTask.getMonth(), finishTask.getDay());
                 if(wd != null) {
-                    wd.Refresh();
+                    wd.getTasks().remove(task);
+                    wd.addTask(task);
+                    ebeanServer.save(user);
                 }
             }
-            
-            ebeanServer.save(user);
 
             return Response.status(Response.Status.NO_CONTENT).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
@@ -309,17 +311,21 @@ public class TLOG16RSResource {
 
                 WorkDay wd = findOrCreateWorkDay(user, modifyTask.getYear(), modifyTask.getMonth(), modifyTask.getDay());
                 if(wd != null) {
-                    wd.Refresh();
+                    wd.getTasks().remove(task);
+                    wd.addTask(task);
+                    ebeanServer.save(user);
+                } else {
+                    throw new RuntimeException();
                 }
-
-                ebeanServer.save(user);
+            } else {
+                throw new RuntimeException();
             }
 
             return Response.status(Response.Status.NO_CONTENT).build();
         } catch(InvalidJWTTokenException | SignatureException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch(NotMultipleQuarterHourException | NotExpectedTimeOrderException e) {
+        } catch(RuntimeException e) {
             LOG.warn(e.getMessage());
             return Response.status(Response.Status.NOT_MODIFIED).build();
         }

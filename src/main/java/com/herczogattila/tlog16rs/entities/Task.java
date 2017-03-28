@@ -10,6 +10,7 @@ import com.herczogattila.tlog16rs.core.exceptions.EmptyTimeFieldException;
 import com.herczogattila.tlog16rs.core.exceptions.InvalidTaskIdException;
 import com.herczogattila.tlog16rs.core.exceptions.NoTaskIdException;
 import com.herczogattila.tlog16rs.core.exceptions.NotExpectedTimeOrderException;
+import com.herczogattila.tlog16rs.core.exceptions.NotMultipleQuarterHourException;
 import java.time.LocalTime;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import javax.persistence.Entity;
@@ -110,13 +111,12 @@ public final class Task {
     
     @JsonIgnore
     public boolean isMultipleQuarterHour() {
-        return getMinPerTask() % 15 == 0;
+        return getMinPerTask() % 15 == 0 && getMinPerTask() != 0;
     }
     
-    @JsonIgnore
     public long getMinPerTask() {
         if(getStartTime() == null || getEndTime() == null)
-            return 0;
+            return 15;
         
         return MINUTES.between(getStartTime(), getEndTime());
     }
@@ -146,6 +146,9 @@ public final class Task {
         
         if(getStartTime() != null && this.getStartTime().compareTo(newEndTime) > 0)
             throw new NotExpectedTimeOrderException();
+        
+        if(getStartTime() != null && MINUTES.between(getStartTime(), newEndTime) == 0)
+            throw new NotMultipleQuarterHourException();
         
         endingTime = endTime;
     }
