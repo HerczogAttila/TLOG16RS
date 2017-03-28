@@ -28,7 +28,6 @@ if (!hasProperty('mainClass')) {
     ext.mainClass = 'com.herczogattila.tlog16rs.TLOG16RSApplication'
 }
 
-
 mainClassName = "com.herczogattila.tlog16rs.TLOG16RSApplication"
 
 repositories {
@@ -62,7 +61,7 @@ task fatJar(type: Jar) {
 }
 
 docker {
-	url = "unix:///var/run/docker.sock";
+    url = "unix:///var/run/docker.sock";
 }
 
 task createDockerfile(type: Dockerfile) {   
@@ -79,8 +78,6 @@ task createDockerfile(type: Dockerfile) {
     	maintainer 'Attila Herczog "aherczog@precognox.com"'
 
     	def appFolder = "/"
-
-		
 	runCommand "apk --update add curl tar bash wget openssl"
 	runCommand "wget --no-check-certificate https://github.com/jwilder/dockerize/releases/download/v0.2.0/dockerize-linux-amd64-v0.2.0.tar.gz"
 	runCommand "tar -C /usr/local/bin -xzvf dockerize-linux-amd64-v0.2.0.tar.gz"
@@ -93,23 +90,22 @@ task createDockerfile(type: Dockerfile) {
 }
 
 dockerBuildImage {
-	dependsOn createDockerfile
-	inputDir = createDockerfile.destFile.parentFile
-	tag = "polc/${project.name.toLowerCase()}"
+    dependsOn createDockerfile
+    inputDir = createDockerfile.destFile.parentFile
+    tag = "polc/${project.name.toLowerCase()}"
 }
 
 run {
- args 'server', 'src/dist/config.yml'
+    args 'server', 'src/dist/config.yml'
 }
 
 classes.doLast {
     javaexec { // Ebean enchancement
         classpath = sourceSets.main.compileClasspath
         main = 'com.avaje.ebean.enhance.ant.MainTransform'
-        args = [
-			compileJava.destinationDir,
-                'com.herczogattila.tlog16rs.entities',
-                'debug=1'
+        args = [compileJava.destinationDir,
+            'com.herczogattila.tlog16rs.entities',
+            'debug=1'
         ]
     }
 }
