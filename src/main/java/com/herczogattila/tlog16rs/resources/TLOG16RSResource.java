@@ -422,6 +422,9 @@ public class TLOG16RSResource {
         } catch (NoSuchAlgorithmException e) {
             LOG.error(e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (MissingUserException e) {
+            LOG.error(e.getMessage());
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
     
