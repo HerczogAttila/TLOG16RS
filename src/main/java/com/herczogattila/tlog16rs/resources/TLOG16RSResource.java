@@ -523,10 +523,7 @@ public class TLOG16RSResource {
     }
     
     private TimeLogger getUserIfValidToken(String jwtToken) {
-        Claims claim = parseJWT(jwtToken);
-        if(DateTime.now().isAfter(claim.getExpiration().getTime()))
-            throw new InvalidJWTTokenException();
-        
+        Claims claim = parseJWT(jwtToken);        
         return getUser(claim.getSubject());
     }
     
