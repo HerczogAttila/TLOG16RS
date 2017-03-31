@@ -28,6 +28,7 @@ public class TimeLogger {
     private String name;
     private String password;
     private String salt;
+    private int WeekStartIndex;
         
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<WorkMonth> months;
@@ -37,6 +38,9 @@ public class TimeLogger {
     public TimeLogger(String name) {
         months = new ArrayList();
         this.name = name;
+        this.password = "";
+        this.salt = "";
+        this.WeekStartIndex = 0;
     }
 
     public boolean isNewMonth(WorkMonth month) {

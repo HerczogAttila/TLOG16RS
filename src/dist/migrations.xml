@@ -65,4 +65,11 @@ create index ix_work_month_time_logger_id on work_month (time_logger_id);
             <column name="salt" type="varchar(255)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="4" author="attila" context="addTimeLoggerLogin" >
+        <addColumn catalogName="timelogger"
+                schemaName="public"
+                tableName="time_logger">
+            <column name="week_start_index" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
