@@ -1,13 +1,13 @@
 #!/bin/bash
 # Remove last docker image and create new
 
-cd ../angular-tlog-webpack
+cd ../tlog-angular-cli
 docker-compose down
 cd ../TLOG16RS
 sudo docker rmi -f polc/tlog16rs
 gradle clean
 gradle dBI
-cd ../angular-tlog-webpack
+cd ../tlog-angular-cli
 docker-compose up -d
 cd ../TLOG16RS
 
