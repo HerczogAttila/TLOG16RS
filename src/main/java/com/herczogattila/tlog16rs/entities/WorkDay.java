@@ -153,7 +153,6 @@ public final class WorkDay {
         sumMinPerDay = getSumPerDay();
     }
     
-    @JsonIgnore
     public int getDayOfMonth() {
         String[] fields = date.split(". ");
         if(fields.length >= 3) {
